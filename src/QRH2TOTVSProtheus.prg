@@ -11,19 +11,19 @@ DECLARE WINDOW Form_QRH2Protheus
 
 procedure main
 
-    local hIni as hash
+    local hINI as hash
 
     SET DEFAULT Icon TO GetStartupFolder() + "\main.ico"
 
     DEFINE WINDOW Form_MainQRH2Protheus ;
         AT 0, 0 ;
         WIDTH 600 HEIGHT 400 ;
-        TITLE "Connecti :: Quarta RH (Solotica) to Protheus " ;
+        TITLE "Connecti :: Quarta RH To TOTVS Microsiga Protheus " ;
         MAIN ;
-        ON INIT hIni:=hb_iniRead("QRH2TOTVSProtheus.ini")
+        ON INIT hINI:=hb_iniRead("QRH2TOTVSProtheus.ini")
         DEFINE MAIN MENU
             DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
-                MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hIni)
+                MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hINI)
                 SEPARATOR
                 ITEM  "&About" ACTION About()
                 SEPARATOR

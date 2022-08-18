@@ -1,26 +1,34 @@
 #include "minigui.ch"
 
-procedure QRHFuncionarios(hIni as hash)
+procedure QRHFuncionarios(hINI as hash)
 
     local aTable as array
     
     local bTransform as codeblock
+
+    local cErrorMsg as character
     
-    local cField as character
     local cFilial as character
     local cEmpresa as character
     local cMatricula as character
     local cFuncionarioID as character
+    
+    local cSourceField as character
+    local cTargetField as character
+
+    local cSourceTable as character
+    local cTargetTable as character
 
     local cTransform as character
     local cCommonFindKey as character
 
-    local hFields as hash := hIni["Funcionarios"]
+    local hFields as hash := hINI["Funcionarios"]
     local hOleConn as hash := {=>}
 
     local lTable as logical
     local lAddNew as logical
-    local lTRansform as logical
+    local lTransform as logical
+    local lFindInTable as logical
 
     local nEmpresa as numeric
     local nMatricula as numeric
@@ -33,17 +41,17 @@ procedure QRHFuncionarios(hIni as hash)
     
     local xValue
 
-    WAIT WINDOW "Funcionarios Solotica..." NOWAIT
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários Quarta RH...")) NOWAIT
 
         //"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=databaseName;User ID=MyUserID;Password=MyPassword;"
-        hOleConn["SourceProvider"]:="Provider="+hIni["QRHConnection"]["Provider"]
+        hOleConn["SourceProvider"]:="Provider="+hINI["QRHConnection"]["Provider"]
         hOleConn["SourceProvider"]+=";"
-        hOleConn["SourceProvider"]+="Data Source="+hIni["QRHConnection"]["DataSource"]
+        hOleConn["SourceProvider"]+="Data Source="+hINI["QRHConnection"]["DataSource"]
         hOleConn["SourceProvider"]+=";"
-        if ((hb_HHasKey(hIni["QRHConnection"],"UserID")).and.(!Empty(hIni["QRHConnection"]["UserID"])))
-            hOleConn["SourceProvider"]+="User ID="+hIni["QRHConnection"]["UserID"]
+        if ((hb_HHasKey(hINI["QRHConnection"],"UserID")).and.(!Empty(hINI["QRHConnection"]["UserID"])))
+            hOleConn["SourceProvider"]+="User ID="+hINI["QRHConnection"]["UserID"]
             hOleConn["SourceProvider"]+=";"
-            hOleConn["SourceProvider"]+="Password="+hIni["QRHConnection"]["Password"]
+            hOleConn["SourceProvider"]+="Password="+hINI["QRHConnection"]["Password"]
             hOleConn["SourceProvider"]+=";"
         endif
         
@@ -60,7 +68,7 @@ procedure QRHFuncionarios(hIni as hash)
                     :LockType:=adLockOptimistic
                     :ActiveConnection:=hOleConn["SourceConnection"]
                     #pragma __cstream|:Source:=%s
-    SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID
+                        SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                         :Open()
                         :Sort:="Empresa,Matricula,FuncionarioID"
@@ -73,7 +81,7 @@ procedure QRHFuncionarios(hIni as hash)
                     :LockType:=adLockOptimistic
                     :ActiveConnection:=hOleConn["SourceConnection"]
                     #pragma __cstream|:Source:=%s
-    SELECT * FROM FuncionarioEndereco ORDER BY Empresa,Matricula,FuncionarioID
+                        SELECT * FROM FuncionarioEndereco ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                     :Open()
                     :Sort:="Empresa,Matricula,FuncionarioID"
@@ -85,7 +93,7 @@ procedure QRHFuncionarios(hIni as hash)
                     :LockType:=adLockOptimistic
                     :ActiveConnection:=hOleConn["SourceConnection"]
                     #pragma __cstream|:Source:=%s
-    SELECT * FROM FuncionarioDocumentos ORDER BY Empresa,Matricula,FuncionarioID
+                        SELECT * FROM FuncionarioDocumentos ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                     :Open()
                     :Sort:="Empresa,Matricula,FuncionarioID"
@@ -97,7 +105,7 @@ procedure QRHFuncionarios(hIni as hash)
                     :LockType:=adLockOptimistic
                     :ActiveConnection:=hOleConn["SourceConnection"]
                     #pragma __cstream|:Source:=%s
-    SELECT * FROM FuncionarioFoto ORDER BY Empresa,Matricula,FuncionarioID
+                        SELECT * FROM FuncionarioFoto ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                     :Open()
                     :Sort:="Empresa,Matricula,FuncionarioID"
@@ -109,7 +117,7 @@ procedure QRHFuncionarios(hIni as hash)
                     :LockType:=adLockOptimistic
                     :ActiveConnection:=hOleConn["SourceConnection"]
                     #pragma __cstream|:Source:=%s
-    SELECT * FROM FuncionarioLancamentos ORDER BY Empresa,Matricula,FuncionarioID,Tipo
+                        SELECT * FROM FuncionarioLancamentos ORDER BY Empresa,Matricula,FuncionarioID,Tipo
                     #pragma __endtext
                     :Open()
                     :Sort:="Empresa,Matricula,FuncionarioID,Tipo"
@@ -119,18 +127,18 @@ procedure QRHFuncionarios(hIni as hash)
 
     WAIT CLEAR                                        
 
-    WAIT WINDOW "Funcionarios Protheus..." NOWAIT
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus...")) NOWAIT
 
         //"Provider=SQLOLEDB;Data Source=serverName;Initial Catalog=databaseName;User ID=MyUserID;Password=MyPassword;"
-        hOleConn["TargetProvider"]:="Provider="+hIni["TOTVSConnection"]["Provider"]
+        hOleConn["TargetProvider"]:="Provider="+hINI["TOTVSConnection"]["Provider"]
         hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Data Source="+hIni["TOTVSConnection"]["DataSource"]
+        hOleConn["TargetProvider"]+="Data Source="+hINI["TOTVSConnection"]["DataSource"]
         hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Initial Catalog="+hIni["TOTVSConnection"]["InitialCatalog"]
+        hOleConn["TargetProvider"]+="Initial Catalog="+hINI["TOTVSConnection"]["InitialCatalog"]
         hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="User ID="+hIni["TOTVSConnection"]["UserID"]
+        hOleConn["TargetProvider"]+="User ID="+hINI["TOTVSConnection"]["UserID"]
         hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Password="+hIni["TOTVSConnection"]["Password"]
+        hOleConn["TargetProvider"]+="Password="+hINI["TOTVSConnection"]["Password"]
         hOleConn["TargetProvider"]+=";"
         
         hOleConn["TargetConnection"]:=TOleAuto():new("ADODB.connection")
@@ -172,17 +180,6 @@ procedure QRHFuncionarios(hIni as hash)
                         :MoveFirst()
                         while (!:eof())
                             nRow++
-                            nComplete:=Int((nRow/:RecordCount)*100)
-                            if ((nComplete%10)==0)
-                                if (IsWindowDefined(Form_QRH2Protheus))
-                                    Form_QRH2Protheus.PrgBar_1.Value:=nComplete
-                                    Form_QRH2Protheus.Label_1.Value:="Completed " + hb_ntos( nComplete ) + "%"
-                                else
-                                    exit
-                                endif
-                                // refreshing
-                                InkeyGui()
-                            endif
                             nEmpresa:=:Fields("Empresa"):Value
                             cEmpresa:=hb_NToS(nEmpresa)
                             nMatricula:=:Fields("Matricula"):Value
@@ -225,6 +222,51 @@ procedure QRHFuncionarios(hIni as hash)
                                     :MoveNext()                                
                                 end while    
                             end with
+                            for each cTargetField in hb_HKeys(hFields)
+                                switch cTargetField
+                                  case "RA_FILIAL"
+                                  case "RA_MAT"
+                                    xValue:=hFields[cTargetField]
+                                    lTransform:=hb_HHasKey(hINI,cTargetField)
+                                    if (lTransform)
+                                        cTransform:=if(hb_HHasKey(hINI[cTargetField],"Transform"),hINI[cTargetField]["Transform"],"")
+                                        lTransform:=(!empty(cTransform))
+                                        if (lTransform)
+                                            lFindInTable:=("FindInTable"==cTransform)
+                                            if (lFindInTable)
+                                                cTransform:=if(hb_HHasKey(hINI[cTargetField],cTransform),hINI[cTargetField][cTransform],"")
+                                            endif
+                                            bTransform:=&(cTransform)
+                                        endif
+                                    endif
+                                    lTable:=("."$xValue)
+                                    if (lTable)
+                                        aTable:=hb_ATokens(xValue,".")
+                                        lTable:=(len(aTable)>=2)
+                                        if (lTable)
+                                            cSourceTable:=aTable[1]
+                                            cSourceField:=aTable[2]
+                                        endif
+                                    elseif (empty(xValue).and.(!lTransform))
+                                        loop
+                                    endif
+                                    if (lTable)
+                                        with object hOleConn[cSourceTable]
+                                            xValue:=:Fields(cSourceField):Value
+                                            if (lTransform)
+                                                xValue:=Eval(bTransform,xValue,hINI,hOleConn)
+                                            endif
+                                        end with 
+                                    elseif (lTransform)
+                                        xValue:=Eval(bTransform,xValue,hINI,hOleConn)
+                                    endif
+                                    if (cTargetField=="RA_MAT")
+                                        cMatricula:=xValue
+                                    else
+                                        cFilial:=xValue
+                                    endif
+                                end switch
+                            next each
                             with object hOleConn["SRA"]
                                 :CursorLocation:=adUseClient
                                 :CursorType:=adOpenDynamic
@@ -238,20 +280,26 @@ procedure QRHFuncionarios(hIni as hash)
                                        AND SRA.RA_MAT='Matricula'
                                      ORDER BY RA_FILIAL
                                              ,RA_MAT
-                                 #pragma __endtext
-                                :Source:=hb_StrReplace(:Source,{'Filial'=>cFilial,'Matricula'=>cMatricula} )
-                                :Open()
+                                #pragma __endtext
+                                :Source:=hb_StrReplace(:Source,{'Filial'=>cFilial,'Matricula'=>cMatricula})
+                                :Open() 
+                                :Sort:="RA_FILIAL,RA_MAT"
+                                :Find("RA_MAT='"+cMatricula+"'",0,1)
                                 lAddNew:=:Eof()
                                 if (lAddNew)
                                     :AddNew()
                                 endif
-                                for each cField in hb_HKeys(hFields)
-                                    xValue:=hFields[cField]
-                                    lTRansform:=hb_HHasKey(hIni,cField)
-                                    if (lTRansform)
-                                        cTransform:=if(hb_HHasKey(hIni[cField],"Transform"),hIni[cField]["Transform"],"")
-                                        lTRansform:=(!empty(cTransform))
-                                        if (lTRansform)
+                                for each cTargetField in hb_HKeys(hFields)
+                                    xValue:=hFields[cTargetField]
+                                    lTransform:=hb_HHasKey(hINI,cTargetField)
+                                    if (lTransform)
+                                        cTransform:=if(hb_HHasKey(hINI[cTargetField],"Transform"),hINI[cTargetField]["Transform"],"")
+                                        lTransform:=(!empty(cTransform))
+                                        if (lTransform)
+                                            lFindInTable:=("FindInTable"==cTransform)
+                                            if (lFindInTable)
+                                                cTransform:=if(hb_HHasKey(hINI[cTargetField],cTransform),hINI[cTargetField][cTransform],"")
+                                            endif
                                             bTransform:=&(cTransform)
                                         endif
                                     endif
@@ -259,52 +307,66 @@ procedure QRHFuncionarios(hIni as hash)
                                     if (lTable)
                                         aTable:=hb_ATokens(xValue,".")
                                         lTable:=(len(aTable)>=2)
-                                    elseif (empty(xValue).and.(!lTRansform))
+                                        if (lTable)
+                                            cSourceTable:=aTable[1]
+                                            cSourceField:=aTable[2]
+                                        endif
+                                    elseif (empty(xValue).and.(!lTransform))
                                         loop
                                     endif
-                                    if (hb_HHasKey(hIni,cField))
-                                        cTransform:=if(hb_HHasKey(hIni[cField],"Transform"),hIni[cField]["Transform"],"")
-                                        if (!empty(cTransform))
-                                            bTransform:=&(cTransform)
-                                            lTRansform:=.T.
-                                        else
-                                            lTRansform:=.F.
-                                        endif
-                                    endif
-                                    switch cField
+                                    switch cTargetField
                                     case "R_E_C_N_O_"
                                         if (lAddNew)
-                                            if (lTRansform)
-                                                :Fields(cField):Value:=Eval(bTransform,nSRARecNo++)
-                                            else    
-                                                :Fields(cField):Value:=nSRARecNo++
+                                            xValue:=nSRARecNo++
+                                            if (lTransform)
+                                                xValue:=Eval(bTransform,xValue,hINI,hOleConn)
                                             endif
+                                            :Fields(cTargetField):Value:=xValue
                                         endif
                                         exit
                                     case "RA_BITMAP"
                                         exit
                                     otherwise
                                         if (lTable)
-                                            with object hOleConn[aTable[1]]
-                                                if (lTRansform)
-                                                    xValue:=Eval(bTransform,:Fields(aTable[2]):Value)
-                                                else    
-                                                    xValue:=:Fields(aTable[2]):Value
+                                            with object hOleConn[cSourceTable]
+                                                if (:eof())
+                                                    loop
+                                                endif    
+                                                xValue:=:Fields(cSourceField):Value
+                                                if (lTransform)
+                                                    xValue:=Eval(bTransform,xValue,hINI,hOleConn)
                                                 endif
                                             end with 
-                                        elseif (lTRansform)
-                                            xValue:=Eval(bTransform,xValue)
+                                        elseif (lTransform)
+                                            xValue:=Eval(bTransform,xValue,hINI,hOleConn)
                                         endif
                                         try 
-                                            :Fields(cField):Value:=xValue
-                                        catch
-                                            msginfo(cField)
+                                            :Fields(cTargetField):Value:=xValue
+                                        catch e
+                                            cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
+                                            MsgInfo(hb_StrReplace(cErrorMsg,{;
+                                                'cTargetField'=>cTargetField,;
+                                                'xValue'=>cValToChar(xValue),;
+                                                'Description'=>e:Description,;
+                                                ";"=>hb_eol();
+                                            }))
                                         end
                                     end switch
-                                 next each
+                                next each
                                 :Update()
                                 :Close()
                             end whith
+                            nComplete:=Int((nRow/:RecordCount)*100)
+                            if ((nComplete%10)==0)
+                                if (IsWindowDefined(Form_QRH2Protheus))
+                                    Form_QRH2Protheus.PrgBar_1.Value:=nComplete
+                                    Form_QRH2Protheus.Label_1.Value:="Completed "+hb_NToS(nComplete)+"%"
+                                else
+                                    exit
+                                endif
+                                // refreshing
+                                InkeyGui()
+                            endif
                             :MoveNext()
                         end while
                         :Close()
@@ -323,7 +385,7 @@ procedure QRHFuncionarios(hIni as hash)
 
 return
 
-function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as character)
+function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical)
 
     local aSplitName as array
     
@@ -340,6 +402,7 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as cha
       
         hb_default(@nMaxChar,40)
         hb_default(@lRemoveSpace,.T.)
+        hb_default(@lFirst,.F.)
       
         cTruncateName:=allTrim(cName)
         if (len(cTruncateName)<=nMaxChar)
@@ -352,6 +415,7 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as cha
         for nString:=1 to nSplitName
             cString:=Upper(aSplitName[nString])
             switch cString
+            case "."
             case "E"
             case "DA"
             case "DE"
@@ -380,7 +444,7 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as cha
             cTruncateName:=""
             lTrucateName:=.T.
             for nString:=1 to nSplitName
-                if ((nString>1).and.(nString<nSplitName))
+                if ((if(!lFirst,nString>1,lFirst)).and.(nString<nSplitName))
                     if ((len(aSplitName[nString])>1).and.(lTrucateName))
                         lTrucateName:=.F.
                         aSplitName[nString]:=Left(aSplitName[nString],1)
@@ -417,3 +481,52 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as cha
     end sequence
     
 return(cTruncateName) as character
+
+function FindInTable(hINI as hash,cTable as character,xValue)
+
+    switch valType(xValue)
+      case "N"
+        xValue:=hb_NToS(xValue)
+        exit
+    otherwise
+        xValue:=cValToChar(xValue)
+    end switch
+    
+    if (hb_HHasKey(hINI,cTable))
+        if (hb_HHasKey(hINI[cTable],xValue))
+            xValue:=hINI[cTable][xValue]
+        endif
+    endif
+    
+return(xValue)
+
+function Concatenate(hIni as hash,hTable as hash,cTable as character,cToken as character,...)
+
+    local aParams as array := hb_aParams()
+
+    local cField as character
+    local cConcatenate as character
+    
+    local hParam as hash
+
+    HB_SYMBOL_UNUSED(hIni)
+
+    hb_default(@cToken,"")
+
+    cConcatenate:=""
+    for each hParam in aParams
+        if (hParam:__enumIndex<=4)
+            loop
+        endif
+        cField:=hParam:__enumValue
+        with object hTable[cTable]
+            if (!:eof())
+                cConcatenate+=:Fields(cField):Value
+                cConcatenate+=cToken
+            endif
+        end with
+    next each
+
+    cConcatenate:=subStr(cConcatenate,1,Len(cConcatenate)-Len(cToken))
+
+return(cConcatenate)
