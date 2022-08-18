@@ -409,13 +409,14 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as log
             break
         endif
 
+        cTruncateName:=hb_StrReplace(cTruncateName,{'.'=>" ",':'=>" ",','=>" ",';'=>" ",'-'=>" ",'_'=>" "})
+
         aSplitName:=hb_aTokens(cTruncateName," ")
         nSplitName:=Len(aSplitName)
 
         for nString:=1 to nSplitName
             cString:=Upper(aSplitName[nString])
             switch cString
-            case "."
             case "E"
             case "DA"
             case "DE"
@@ -529,4 +530,4 @@ function Concatenate(hIni as hash,hTable as hash,cTable as character,cToken as c
 
     cConcatenate:=subStr(cConcatenate,1,Len(cConcatenate)-Len(cToken))
 
-return(cConcatenate)
+return(cConcatenate) as character

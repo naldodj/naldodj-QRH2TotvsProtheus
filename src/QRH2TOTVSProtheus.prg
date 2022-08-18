@@ -25,6 +25,8 @@ procedure main
             DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
                 MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hINI)
                 SEPARATOR
+                MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload Configuration")) ACTION (hINI:=hb_iniRead("QRH2TOTVSProtheus.ini"))
+                SEPARATOR
                 ITEM  "&About" ACTION About()
                 SEPARATOR
                 ITEM 'E&xit' ACTION Form_MainQRH2Protheus.Release()
