@@ -586,6 +586,20 @@ function ImgToFile(hIni as hash,hTable as hash,cTable as character,cField as cha
 
 return(cRABitMap) as character
 
+function GetFieldData(hIni as hash,hTable as hash,cTable as character,cField as character)
+
+    local xValue
+
+    HB_SYMBOL_UNUSED(hIni)
+
+    with object hTable[cTable]
+        if (!:eof())
+            xValue:=:Fields(cField):Value
+        endif
+    end with
+
+return(xValue) as date
+
 function AddDaysToDate(hIni as hash,hTable as hash,cTable as character,cFieldDate as character,nDays as numeric)
 
     local dDate as date
