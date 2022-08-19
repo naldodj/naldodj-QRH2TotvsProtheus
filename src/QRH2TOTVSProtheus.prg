@@ -13,6 +13,8 @@ procedure main
 
     local hINI as hash
 
+	SET CENTURY ON
+
     SET DEFAULT Icon TO GetStartupFolder() + "\QRH2TOTVSProtheus.ico"
 
     DEFINE WINDOW Form_MainQRH2Protheus ;
@@ -22,16 +24,25 @@ procedure main
         MAIN ;
         ON INIT hINI:=hb_iniRead("QRH2TOTVSProtheus.ini")
         DEFINE MAIN MENU
-            DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
-                MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hINI)
+            DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hINI)
+                END POPUP
                 SEPARATOR
-                MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload Configuration")) ACTION (hINI:=hb_iniRead("QRH2TOTVSProtheus.ini"))
-                SEPARATOR
-                ITEM  "&About" ACTION About()
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Configurações"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead("QRH2TOTVSProtheus.ini"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\QRH2TOTVSProtheus.ini")
+                END POPUP
                 SEPARATOR
                 ITEM 'E&xit' ACTION Form_MainQRH2Protheus.Release()
             END POPUP
+            DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Sobre"))
+                ITEM  "&About" ACTION About()
+            END POPUP
         END MENU
+		DEFINE STATUSBAR FONT "MS Sans serif" SIZE 9 BOLD
+			STATUSITEM "Connecti :: Quarta RH To TOTVS Microsiga Protheus " 	 
+		END STATUSBAR
     ON KEY ESCAPE ACTION ThisWindow.Release
     END WINDOW
 
@@ -99,3 +110,4 @@ static function About()
 return(ShellAbout(cAbout,cCopyRight,LoadTrayIcon(GetInstance(),"MAINICON",50,50)))
 
 #include "QRHFuncionarios.prg"
+#include "QRH2TOTVSProtheusViewIni.prg"
