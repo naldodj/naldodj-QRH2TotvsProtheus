@@ -600,7 +600,7 @@ function GetFieldData(hIni as hash,hTable as hash,cTable as character,cField as 
 
 return(xValue) as date
 
-function AddDaysToDate(hIni as hash,hTable as hash,cTable as character,cFieldDate as character,nDays as numeric)
+function DateAddDay(hIni as hash,hTable as hash,cTable as character,cFieldDate as character,nDays as numeric)
 
     local dDate as date
     local dNewDate as date
@@ -610,6 +610,8 @@ function AddDaysToDate(hIni as hash,hTable as hash,cTable as character,cFieldDat
     with object hTable[cTable]
         if (!:eof())
             dDate:=:Fields(cFieldDate):Value
+            hb_default(@nDays,0)
+            nDays:=Max(nDays,0)
             dNewDate:=dDate+nDays
         endif
     end with
