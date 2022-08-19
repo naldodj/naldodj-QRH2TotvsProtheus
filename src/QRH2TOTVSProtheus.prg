@@ -13,7 +13,7 @@ procedure main
 
     local hINI as hash
 
-    SET DEFAULT Icon TO GetStartupFolder() + "\main.ico"
+    SET DEFAULT Icon TO GetStartupFolder() + "\QRH2TOTVSProtheus.ico"
 
     DEFINE WINDOW Form_MainQRH2Protheus ;
         AT 0, 0 ;
