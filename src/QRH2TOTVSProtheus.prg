@@ -7,6 +7,9 @@
 #include "minigui.ch"
 #include "c:\minigui\source\adordd\adordd.ch"
 
+REQUEST HB_CODEPAGE_PTISO
+REQUEST HB_CODEPAGE_UTF8EX
+
 DECLARE WINDOW Form_QRH2Protheus
 
 procedure main
@@ -30,7 +33,12 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentes(hINI)
                 END POPUP
                 SEPARATOR
-                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Configurações"))
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Consulta"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionariosBrowse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI)
+                END POPUP
+                SEPARATOR
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\QRH2TOTVSProtheus.ini")
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead("QRH2TOTVSProtheus.ini"))
                 END POPUP
@@ -41,8 +49,8 @@ procedure main
                 ITEM  "&About" ACTION About()
             END POPUP
         END MENU
-		DEFINE STATUSBAR FONT "MS Sans serif" SIZE 9 BOLD
-			STATUSITEM "Connecti :: Quarta RH To TOTVS Microsiga Protheus " 	 
+		DEFINE STATUSBAR FONT "MS Sans serif" SIZE 8
+			STATUSITEM "Connecti :: Quarta RH To TOTVS Microsiga Protheus "
 		END STATUSBAR
     ON KEY ESCAPE ACTION ThisWindow.Release
     END WINDOW
@@ -114,35 +122,100 @@ function QRHGetProviders(hINI)
 
     local hOleConn as hash := {=>}
 
-    //"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=databaseName;User ID=MyUserID;Password=MyPassword;"
-    hOleConn["SourceProvider"]:="Provider="+hINI["QRHConnection"]["Provider"]
-    hOleConn["SourceProvider"]+=";"
-    hOleConn["SourceProvider"]+="Data Source="+hINI["QRHConnection"]["DataSource"]
-    hOleConn["SourceProvider"]+=";"
-    if ((hb_HHasKey(hINI["QRHConnection"],"UserID")).and.(!Empty(hINI["QRHConnection"]["UserID"])))
-        hOleConn["SourceProvider"]+="User ID="+hINI["QRHConnection"]["UserID"]
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários Quarta RH...")) NOWAIT
+
+        //"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=databaseName;User ID=MyUserID;Password=MyPassword;"
+        hOleConn["SourceProvider"]:="Provider="+hINI["QRHConnection"]["Provider"]
         hOleConn["SourceProvider"]+=";"
-        hOleConn["SourceProvider"]+="Password="+hINI["QRHConnection"]["Password"]
+        hOleConn["SourceProvider"]+="Data Source="+hINI["QRHConnection"]["DataSource"]
         hOleConn["SourceProvider"]+=";"
-    endif
+        if ((hb_HHasKey(hINI["QRHConnection"],"UserID")).and.(!Empty(hINI["QRHConnection"]["UserID"])))
+            hOleConn["SourceProvider"]+="User ID="+hINI["QRHConnection"]["UserID"]
+            hOleConn["SourceProvider"]+=";"
+            hOleConn["SourceProvider"]+="Password="+hINI["QRHConnection"]["Password"]
+            hOleConn["SourceProvider"]+=";"
+        endif
 
-    hOleConn["SourceConnection"]:=TOleAuto():new("ADODB.connection")
+        hOleConn["SourceConnection"]:=TOleAuto():new("ADODB.connection")
+        with object hOleConn["SourceConnection"]
+            :Mode:=3
+            :CursorLocation:=adUseClient
+            :ConnectionString:=hOleConn["SourceProvider"]
+            :Open()
+        end with
 
-    //"Provider=SQLOLEDB;Data Source=serverName;Initial Catalog=databaseName;User ID=MyUserID;Password=MyPassword;"
-    hOleConn["TargetProvider"]:="Provider="+hINI["TOTVSConnection"]["Provider"]
-    hOleConn["TargetProvider"]+=";"
-    hOleConn["TargetProvider"]+="Data Source="+hINI["TOTVSConnection"]["DataSource"]
-    hOleConn["TargetProvider"]+=";"
-    hOleConn["TargetProvider"]+="Initial Catalog="+hINI["TOTVSConnection"]["InitialCatalog"]
-    hOleConn["TargetProvider"]+=";"
-    hOleConn["TargetProvider"]+="User ID="+hINI["TOTVSConnection"]["UserID"]
-    hOleConn["TargetProvider"]+=";"
-    hOleConn["TargetProvider"]+="Password="+hINI["TOTVSConnection"]["Password"]
-    hOleConn["TargetProvider"]+=";"
+    WAIT CLEAR
 
-    hOleConn["TargetConnection"]:=TOleAuto():new("ADODB.connection")
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus...")) NOWAIT
+
+        //"Provider=SQLOLEDB;Data Source=serverName;Initial Catalog=databaseName;User ID=MyUserID;Password=MyPassword;"
+        hOleConn["TargetProvider"]:="Provider="+hINI["TOTVSConnection"]["Provider"]
+        hOleConn["TargetProvider"]+=";"
+        hOleConn["TargetProvider"]+="Data Source="+hINI["TOTVSConnection"]["DataSource"]
+        hOleConn["TargetProvider"]+=";"
+        hOleConn["TargetProvider"]+="Initial Catalog="+hINI["TOTVSConnection"]["InitialCatalog"]
+        hOleConn["TargetProvider"]+=";"
+        hOleConn["TargetProvider"]+="User ID="+hINI["TOTVSConnection"]["UserID"]
+        hOleConn["TargetProvider"]+=";"
+        hOleConn["TargetProvider"]+="Password="+hINI["TOTVSConnection"]["Password"]
+        hOleConn["TargetProvider"]+=";"
+
+        hOleConn["TargetConnection"]:=TOleAuto():new("ADODB.connection")
+        with object hOleConn["TargetConnection"]
+            :Mode:=3
+            :CursorLocation:=adUseClient
+            :ConnectionString:=hOleConn["TargetProvider"]
+            :Open()
+        end with
+
+    WAIT CLEAR
 
 return(hOleConn) as hash
+
+procedure QRHOpenRecordSet(oRecordSet,oProvider,cSource,cSort)
+
+    local cStrFindReplace as character
+
+    cSource:=allTrim(cSource)
+    
+    cStrFindReplace:=hb_eol()
+    while cStrFindReplace$cSource
+        cSource:=strTran(cSource,cStrFindReplace,"")
+    end while
+
+    cStrFindReplace:=chr(10)
+    while cStrFindReplace$cSource
+        cSource:=strTran(cSource,cStrFindReplace,"")
+    end while
+
+    cStrFindReplace:=chr(13)
+    while cStrFindReplace$cSource
+        cSource:=strTran(cSource,cStrFindReplace,"")
+    end while
+    
+    cSource:=allTrim(cSource)
+
+    cStrFindReplace:="  "
+    while cStrFindReplace$cSource
+        cSource:=strTran(cSource,cStrFindReplace," ")
+    end while
+
+    with object oProvider
+        if (:State==adStateOpen )
+            with object oRecordSet
+                :CacheSize:=100
+                :CursorLocation:=adUseClient
+                :CursorType:=adOpenDynamic
+                :LockType:=adLockOptimistic
+                :ActiveConnection:=oProvider
+                :Source:=cSource
+                :Open()
+                :Sort:=cSort
+            end with
+        endif
+    end with
+
+return
 
 function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical)
 
@@ -358,74 +431,131 @@ return(dNewDate) as date
 function getTargetFieldValue(hINI as hash,cTargetField as character,hFields as hash,hOleConn as hash,cFilial as character,cMatricula as character,cEmpresa as character,lLoop as logical,cIndexField,nIndexValue)
 
     local aTable as array
-    
+
     local bTransform as codeblock
 
     local cTransform as character
-    
+
     local cSourceTable as character
     local cSourceField as character
-    
+
     local lTable as logical
     local lTransform as logical
     local lFindInTable as logical
-    
+
     local xValue
 
-    
-    if (cTargetField==cIndexField)
-        xValue:=nIndexValue
-    else
-        xValue:=hFields[cTargetField]
-    endif
+    begin sequence
 
-    lTransform:=hb_HHasKey(hINI,cTargetField)
-    if (lTransform)
-        cTransform:=if(hb_HHasKey(hINI[cTargetField],"Transform"),hINI[cTargetField]["Transform"],"")
-        lTransform:=(!empty(cTransform))
+        if (cTargetField==cIndexField)
+            xValue:=nIndexValue
+        else
+            xValue:=hFields[cTargetField]
+        endif
+
+        lTransform:=hb_HHasKey(hINI,cTargetField)
         if (lTransform)
-            lFindInTable:=("FindInTable"==cTransform)
-            if (lFindInTable)
-                cTransform:=if(hb_HHasKey(hINI[cTargetField],cTransform),hINI[cTargetField][cTransform],"")
+            cTransform:=if(hb_HHasKey(hINI[cTargetField],"Transform"),hINI[cTargetField]["Transform"],"")
+            lTransform:=(!empty(cTransform))
+            if (lTransform)
+                lFindInTable:=("FindInTable"==cTransform)
+                if (lFindInTable)
+                    cTransform:=if(hb_HHasKey(hINI[cTargetField],cTransform),hINI[cTargetField][cTransform],"")
+                endif
+                bTransform:=&(cTransform)
             endif
-            bTransform:=&(cTransform)
         endif
-    endif
 
-    lLoop:=.F.
+        lLoop:=.F.
 
-    lTable:=((valType(xValue)=="C").and.("."$xValue))
-    
-    if (lTable)
-        aTable:=hb_ATokens(xValue,".")
-        lTable:=(len(aTable)>=2)
+        lTable:=((valType(xValue)=="C").and.("."$xValue))
+
         if (lTable)
-            cSourceTable:=aTable[1]
-            cSourceField:=aTable[2]
+            aTable:=hb_ATokens(xValue,".")
+            lTable:=(len(aTable)>=2)
+            if (lTable)
+                cSourceTable:=aTable[1]
+                cSourceField:=aTable[2]
+            endif
+        elseif (empty(xValue).and.(!lTransform))
+            lLoop:=.T.
+            break
         endif
-    elseif (empty(xValue).and.(!lTransform))
-        lLoop:=.T.
-    endif
 
-    if (!lLoop)
         if (lTable)
             with object hOleConn[cSourceTable]
                 lLoop:=(:eof())
-                if (!lLoop)
-                    xValue:=:Fields(cSourceField):Value
-                    if (lTransform)
-                        xValue:=Eval(bTransform,xValue,hINI,hOleConn,cFilial,cMatricula,cEmpresa)
-                    endif
+                if (lLoop)
+                    break
+                endif
+                xValue:=:Fields(cSourceField):Value
+                if (lTransform)
+                    xValue:=Eval(bTransform,xValue,hINI,hOleConn,cFilial,cMatricula,cEmpresa)
                 endif
             end with
-        elseif (lTransform)
+            break
+        endif
+
+        if (lTransform)
             xValue:=Eval(bTransform,xValue,hINI,hOleConn,cFilial,cMatricula,cEmpresa)
         endif
-    endif
+
+    end sequence
 
 return(xValue)
+
+static function QRHFuncionariosBrowse(hINI as hash)
+
+    local cSource as character
+    local cTitle as character :=hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus..."))
+    local hOleConn as hash := QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SRA"]
+                #pragma __cstream|cSource:=%s
+                    SELECT * FROM SRA010 SRA ORDER BY RA_CIC,RA_FILIAL
+                #pragma __endtext
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_CIC,RA_FILIAL")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRA"],cTitle)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
+
+static function QRHFuncionariosDependentesBrowse(hINI as hash)
+
+    local cSource as character
+    local cTitle as character:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Dependentes TOTVS Microsiga Protheus..."))
+    local hOleConn as hash := QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SRB"]
+                #pragma __cstream|cSource:=%s
+                    SELECT * FROM SRB010 SRA ORDER BY RB_NOME,RB_FILIAL
+                #pragma __endtext
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRB"],cTitle)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
 
 #include "QRHFuncionarios.prg"
 #include "QRHFuncionariosDependentes.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"
+#include "QRH2TOTVSProtheusBrowseData.prg"

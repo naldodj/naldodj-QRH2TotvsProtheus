@@ -20,7 +20,8 @@ Function QRH2TOTVSProtheusViewIni(cIniFile)
 	DEFINE WINDOW Form_ViewIni ;
 		AT 338,157 WIDTH 638 HEIGHT 420+iif(IsThemed(),2*GetBorderHeight(),0) ;
 		TITLE "Connecti :: Quarta RH To TOTVS Microsiga Protheus " ;
-		ICON GetStartupFolder()+"\QRH2TOTVSProtheus.ico" ;
+		CHILD;
+        ICON GetStartupFolder()+"\QRH2TOTVSProtheus.ico" ;
 		ON INIT {|| IIF(!EMPTY(cIniFile), OPEN_INI(strtran(cIniFile,'"','')), )} ;
 		ON MAXIMIZE RESIZEIT() ;
 		ON SIZE RESIZEIT()
@@ -78,7 +79,7 @@ Function QRH2TOTVSProtheusViewIni(cIniFile)
 			END POPUP
 		END MENU
 
-		DEFINE STATUSBAR FONT "MS Sans serif" SIZE 9 BOLD
+		DEFINE STATUSBAR FONT "MS Sans serif" SIZE 8
 			STATUSITEM "" 	 
 		END STATUSBAR
 

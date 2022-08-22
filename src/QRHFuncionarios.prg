@@ -9,6 +9,7 @@ procedure QRHFuncionarios(hINI as hash)
     local cMatricula as character
     local cFuncionarioID as character
 
+    local cSource as string
     local cTargetField as character
 
     local cCommonFindKey as character
@@ -36,81 +37,48 @@ procedure QRHFuncionarios(hINI as hash)
     WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários Quarta RH...")) NOWAIT
 
         with object hOleConn["SourceConnection"]
-            :ConnectionString:=hOleConn["SourceProvider"]
-            :Open()
             if (:State==adStateOpen )
                 hOleConn["Funcionarios"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["Funcionarios"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                        :Open()
-                        :Sort:="Empresa,Matricula,FuncionarioID"
-                    WAIT CLEAR
+                    QRHOpenRecordSet(hOleConn["Funcionarios"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
                 hOleConn["FuncionarioEndereco"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioEndereco"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM FuncionarioEndereco ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID"
+                    QRHOpenRecordSet(hOleConn["FuncionarioEndereco"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
                 hOleConn["FuncionarioDocumentos"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioDocumentos"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM FuncionarioDocumentos ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID"
+                    QRHOpenRecordSet(hOleConn["FuncionarioDocumentos"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
                 hOleConn["FuncionarioFoto"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioFoto"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM FuncionarioFoto ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID"
+                    QRHOpenRecordSet(hOleConn["FuncionarioFoto"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
                 hOleConn["FuncionarioLancamentos"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioLancamentos"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
-                        SELECT * FROM FuncionarioLancamentos ORDER BY Empresa,Matricula,FuncionarioID,Tipo
+                    #pragma __cstream|cSource:=%s
+                        SELECT * FROM FuncionarioLancamentos WHERE Codigo=1 AND Tipo='P' ORDER BY Empresa,Matricula,FuncionarioID,Codigo,Tipo
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID,Tipo"
+                    QRHOpenRecordSet(hOleConn["FuncionarioLancamentos"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,Codigo,Tipo")
                 end with
                 hOleConn["PontoFuncionarios"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["PontoFuncionarios"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM PontoFuncionarios ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID"
+                    QRHOpenRecordSet(hOleConn["PontoFuncionarios"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
             endif
         end
@@ -120,20 +88,14 @@ procedure QRHFuncionarios(hINI as hash)
     WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus...")) NOWAIT
 
         with object hOleConn["TargetConnection"]
-            :ConnectionString:=hOleConn["TargetProvider"]
-            :Open()
             if (:State==adStateOpen )
                 hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["SRA"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["TargetConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT (MAX(SRA.R_E_C_N_O_)+1) SRARECNO
                           FROM SRA010 SRA
                     #pragma __endtext
-                    :Open()
+                    QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"SRARECNO")
                     if (:eof())
                         nSRARecNo:=1
                     else
@@ -141,6 +103,7 @@ procedure QRHFuncionarios(hINI as hash)
                     endif
                     :Close()
                 end with
+                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with
 
@@ -192,7 +155,7 @@ procedure QRHFuncionarios(hINI as hash)
                                         )
                                         exit
                                     endif
-                                    if (:Fields("Tipo"):Value=="1")
+                                    if ((:Fields("Codigo")==1).and.(:Fields("Tipo"):Value=="P"))
                                         exit
                                     endif
                                     :MoveNext()
@@ -215,22 +178,17 @@ procedure QRHFuncionarios(hINI as hash)
                                 end switch
                             next each
                             with object hOleConn["SRA"]
-                                :CursorLocation:=adUseClient
-                                :CursorType:=adOpenDynamic
-                                :LockType:=adLockOptimistic
-                                :ActiveConnection:=hOleConn["TargetConnection"]
-                                #pragma __cstream|:Source:=%s
+                                #pragma __cstream|cSource:=%s
                                     SELECT *
                                       FROM SRA010 SRA
                                      WHERE SRA.D_E_L_E_T_=' '
                                        AND SRA.RA_FILIAL='Filial'
                                        AND SRA.RA_MAT='Matricula'
-                                     ORDER BY RA_FILIAL
-                                             ,RA_MAT
+                                     ORDER BY SRA.RA_FILIAL
+                                             ,SRA.RA_MAT
                                 #pragma __endtext
-                                :Source:=hb_StrReplace(:Source,{'Filial'=>cFilial,'Matricula'=>cMatricula})
-                                :Open()
-                                :Sort:="RA_FILIAL,RA_MAT"
+                                cSource:=hb_StrReplace(cSource,{'Filial'=>cFilial,'Matricula'=>cMatricula})
+                                QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_FILIAL,RA_MAT")
                                 :Find("RA_MAT='"+cMatricula+"'",0,1)
                                 lAddNew:=(:eof())
                                 if (lAddNew)
@@ -271,16 +229,16 @@ procedure QRHFuncionarios(hINI as hash)
                                 :Close()
                             end whith
                             nComplete:=Int((nRow/:RecordCount)*100)
-                            if ((nComplete%10)==0)
+                            if (Mod(nComplete,10)==0)
                                 if (IsWindowDefined(Form_QRH2Protheus))
                                     Form_QRH2Protheus.PrgBar_1.Value:=nComplete
-                                    Form_QRH2Protheus.Label_1.Value:="Completed "+hb_NToS(nComplete)+"%"
+                                    Form_QRH2Protheus.Label_1.Value:=hb_StrReplace("Completed [nRow/:RecordCount]("+hb_NToS(nComplete)+")%",{"nRow"=>hb_NToS(nRow),":RecordCount"=>hb_NToS(:RecordCount)})
                                 else
                                     exit
                                 endif
-                                // refreshing
-                                InkeyGui()
                             endif
+                            // refreshing
+                            InkeyGui()
                             :MoveNext()
                         end while
                         :Close()

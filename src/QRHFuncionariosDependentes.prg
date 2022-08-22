@@ -10,6 +10,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
     local cMatricula as character
     local cFuncionarioID as character
 
+    local cSource as character
     local cTargetField as character
 
     local cCommonFindKey as character
@@ -38,33 +39,20 @@ procedure QRHFuncionariosDependentes(hINI as hash)
     WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Dependentes Quarta RH...")) NOWAIT
 
         with object hOleConn["SourceConnection"]
-            :ConnectionString:=hOleConn["SourceProvider"]
-            :Open()
             if (:State==adStateOpen )
                 hOleConn["Funcionarios"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["Funcionarios"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
-                        :Open()
-                        :Sort:="Empresa,Matricula,FuncionarioID"
-                    WAIT CLEAR
+                    QRHOpenRecordSet(hOleConn["Funcionarios"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
                 hOleConn["FuncionarioDependentes"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioDependentes"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["SourceConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM FuncionarioDependentes ORDER BY Empresa,Matricula,FuncionarioID,FuncionarioDependenteID
                     #pragma __endtext
-                    :Open()
-                    :Sort:="Empresa,Matricula,FuncionarioID,FuncionarioDependenteID"
+                    QRHOpenRecordSet(hOleConn["FuncionarioDependentes"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,FuncionarioDependenteID")
                 end with
             endif
         end
@@ -74,20 +62,14 @@ procedure QRHFuncionariosDependentes(hINI as hash)
     WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Dependentes TOTVS Microsiga Protheus...")) NOWAIT
 
         with object hOleConn["TargetConnection"]
-            :ConnectionString:=hOleConn["TargetProvider"]
-            :Open()
             if (:State==adStateOpen )
                 hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["SRB"]
-                    :CursorLocation:=adUseClient
-                    :CursorType:=adOpenDynamic
-                    :LockType:=adLockOptimistic
-                    :ActiveConnection:=hOleConn["TargetConnection"]
-                    #pragma __cstream|:Source:=%s
+                    #pragma __cstream|cSource:=%s
                         SELECT (MAX(SRB.R_E_C_N_O_)+1) SRBRECNO
                           FROM SRB010 SRB
                     #pragma __endtext
-                    :Open()
+                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"SRBRECNO")
                     if (:eof())
                         nSRBRecNo:=1
                     else
@@ -95,6 +77,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                     endif
                     :Close()
                 end with
+                hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with
 
@@ -155,11 +138,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                         end switch
                                     next each                                    
                                     with object hOleConn["SRB"]
-                                        :CursorLocation:=adUseClient
-                                        :CursorType:=adOpenDynamic
-                                        :LockType:=adLockOptimistic
-                                        :ActiveConnection:=hOleConn["TargetConnection"]
-                                        #pragma __cstream|:Source:=%s
+                                        #pragma __cstream|cSource:=%s
                                             SELECT *
                                               FROM SRB010 SRB
                                              WHERE SRB.D_E_L_E_T_=' '
@@ -170,9 +149,8 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                                      ,RB_MAT
                                                      ,RB_COD
                                         #pragma __endtext
-                                        :Source:=hb_StrReplace(:Source,{'Filial'=>cFilial,'Matricula'=>cMatricula,'Codigo'=>cRBCod})
-                                        :Open()
-                                        :Sort:="RB_FILIAL,RB_MAT,RB_COD"
+                                        cSource:=hb_StrReplace(cSource,{'Filial'=>cFilial,'Matricula'=>cMatricula,'Codigo'=>cRBCod})
+                                        QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
                                         :Find("RB_MAT='"+cMatricula+"'",0,1)
                                         lAddNew:=(:eof())
                                         if (lAddNew)
@@ -218,16 +196,16 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                 end while
                             end whith
                             nComplete:=Int((nRow/:RecordCount)*100)
-                            if ((nComplete%10)==0)
+                            if (Mod(nComplete,10)==0)
                                 if (IsWindowDefined(Form_QRH2Protheus))
                                     Form_QRH2Protheus.PrgBar_1.Value:=nComplete
-                                    Form_QRH2Protheus.Label_1.Value:="Completed "+hb_NToS(nComplete)+"%"
+                                    Form_QRH2Protheus.Label_1.Value:=hb_StrReplace("Completed [nRow/:RecordCount]("+hb_NToS(nComplete)+")%",{"nRow"=>hb_NToS(nRow),":RecordCount"=>hb_NToS(:RecordCount)})
                                 else
                                     exit
                                 endif
-                                // refreshing
-                                InkeyGui()
                             endif
+                            // refreshing
+                            InkeyGui()
                             :MoveNext()
                         end while
                         :Close()
