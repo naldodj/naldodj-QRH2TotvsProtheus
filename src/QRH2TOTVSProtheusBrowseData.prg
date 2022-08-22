@@ -14,7 +14,7 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle)
     local nBrwWidth as numeric := nWinWidth-30
     local nBrwHeight as numeric := nWinHeight-60
 
-    IF (!_IsControlDefined ("Font_QRH2TotvsBrowseData","Main"))
+    if (!_IsControlDefined ("Font_QRH2TotvsBrowseData","Main"))
         DEFINE FONT Font_QRH2TotvsBrowseData FONTNAME "Arial" SIZE 10
     endif
 
@@ -26,28 +26,31 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle)
     NOMAXIMIZE NOSIZE
     ON INIT  oQRH2TotvsBrowseData:SetFocus()
 
-     @  10,  10 TBROWSE oQRH2TotvsBrowseData RECORDSET oRecordSet  EDITABLE AUTOCOLS SELECTOR .T. ;
-        WIDTH nBrwWidth HEIGHT nBrwHeight  ;
-        FONT Font_QRH2TotvsBrowseData ;
-        COLORS CLR_BLACK, CLR_WHITE, CLR_BLACK, { CLR_WHITE, COLOR_GRID }, CLR_BLACK, -CLR_HRED  ;
+    @  10,  10 TBROWSE oQRH2TotvsBrowseData RECORDSET oRecordSet  EDITABLE AUTOCOLS SELECTOR .T. ;
+    WIDTH nBrwWidth HEIGHT nBrwHeight  ;
+    FONT Font_QRH2TotvsBrowseData ;
+    COLORS CLR_BLACK, CLR_WHITE, CLR_BLACK, { CLR_WHITE, COLOR_GRID }, CLR_BLACK, -CLR_HRED  ;
 
     oQRH2TotvsBrowseData:aColumns[ 1 ]:lEdit := .F.
     oQRH2TotvsBrowseData:nClrLine := COLOR_GRID
-    
-    if (oQRH2TotvsBrowseData:lDrawSpecHd)
-        oQRH2TotvsBrowseData:nClrSpcHdBack := oQRH2TotvsBrowseData:nClrHeadBack
-    endif
-    
-   ON KEY ESCAPE ACTION ThisWindow.Release
 
-   END WINDOW
+    if (oQRH2TotvsBrowseData:lDrawSpecHd)
+    oQRH2TotvsBrowseData:nClrSpcHdBack := oQRH2TotvsBrowseData:nClrHeadBack
+    endif
+
+    ON KEY ESCAPE ACTION ThisWindow.Release
+
+    END WINDOW
 
     cCodePage:=Hb_SetCodePage('PTISO')
 
-   ACTIVATE WINDOW Form_QRH2TOTVSBrwoseData
+    ACTIVATE WINDOW Form_QRH2TOTVSBrwoseData
 
-   RELEASE FONT Font_QRH2TotvsBrowseData
+    RELEASE FONT Font_QRH2TotvsBrowseData
+    if (IsWindowDefined( Form_QRH2TOTVSBrwoseData ))
+        RELEASE WINDOW Form_QRH2TOTVSBrwoseData
+    endif
 
-   Hb_SetCodePage(cCodePage)
+    Hb_SetCodePage(cCodePage)
    
 return
