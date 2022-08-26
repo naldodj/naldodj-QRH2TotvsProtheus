@@ -31,11 +31,13 @@ procedure main
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionarios(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentes(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Afastamentos")) ACTION QRHFuncionariosAfastamentos(hINI)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Consulta"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Funcionários")) ACTION QRHFuncionariosBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
@@ -177,7 +179,7 @@ procedure QRHOpenRecordSet(oRecordSet,oProvider,cSource,cSort)
     local cStrFindReplace as character
 
     cSource:=allTrim(cSource)
-    
+
     cStrFindReplace:=hb_eol()
     while cStrFindReplace$cSource
         cSource:=strTran(cSource,cStrFindReplace,"")
@@ -192,7 +194,7 @@ procedure QRHOpenRecordSet(oRecordSet,oProvider,cSource,cSort)
     while cStrFindReplace$cSource
         cSource:=strTran(cSource,cStrFindReplace,"")
     end while
-    
+
     cSource:=allTrim(cSource)
 
     cStrFindReplace:="  "
@@ -216,6 +218,18 @@ procedure QRHOpenRecordSet(oRecordSet,oProvider,cSource,cSort)
     end with
 
 return
+
+function QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTOTVSEmpresa as character
+
+    if (hb_HHasKey(hINI,"TOTVSConnection"))
+        if (hb_HHasKey(hINI["TOTVSConnection"],"TOTVSEmpresa"))
+            cTOTVSEmpresa:=hINI["TOTVSConnection"]["TOTVSEmpresa"]
+        endif
+    endif
+
+return(cTOTVSEmpresa) as character
 
 function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical)
 
@@ -333,7 +347,7 @@ function FindInTable(hINI as hash,cTable as character,xValue)
 
 return(xValue)
 
-function Concatenate(hIni as hash,hTable as hash,cTable as character,cToken as character,...)
+function Concatenate(hINI as hash,hTable as hash,cTable as character,cToken as character,...)
 
     local aParams as array := hb_aParams()
 
@@ -342,7 +356,7 @@ function Concatenate(hIni as hash,hTable as hash,cTable as character,cToken as c
 
     local hParam as hash
 
-    HB_SYMBOL_UNUSED(hIni)
+    HB_SYMBOL_UNUSED(hINI)
 
     hb_default(@cToken,"")
 
@@ -364,7 +378,7 @@ function Concatenate(hIni as hash,hTable as hash,cTable as character,cToken as c
 
 return(cConcatenate) as character
 
-function ImgToFile(hIni as hash,hTable as hash,cTable as character,cField as character,cFilial as character,cMatricula as character)
+function ImgToFile(hINI as hash,hTable as hash,cTable as character,cField as character,cFilial as character,cMatricula as character)
 
     local cFileIMG as character
     local cFileEXT as character
@@ -404,11 +418,11 @@ function ImgToFile(hIni as hash,hTable as hash,cTable as character,cField as cha
 
 return(cRABitMap) as character
 
-function GetDataField(hIni as hash,hTable as hash,cTable as character,cField as character)
+function GetDataField(hINI as hash,hTable as hash,cTable as character,cField as character)
 
     local xValue
 
-    HB_SYMBOL_UNUSED(hIni)
+    HB_SYMBOL_UNUSED(hINI)
 
     with object hTable[cTable]
         if (!:eof())
@@ -506,9 +520,19 @@ return(xValue)
 
 static function QRHFuncionariosBrowse(hINI as hash)
 
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
     local cSource as character
-    local cTitle as character :=hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus..."))
-    local hOleConn as hash := QRHGetProviders(hINI)
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
 
     with object hOleConn["TargetConnection"]
         if (:State==adStateOpen )
@@ -517,6 +541,8 @@ static function QRHFuncionariosBrowse(hINI as hash)
                 #pragma __cstream|cSource:=%s
                     SELECT * FROM SRA010 SRA ORDER BY RA_CIC,RA_FILIAL
                 #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus..."))
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_CIC,RA_FILIAL")
                 WAIT CLEAR
@@ -531,19 +557,31 @@ return
 
 static function QRHFuncionariosDependentesBrowse(hINI as hash)
 
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
     local cSource as character
-    local cTitle as character:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Dependentes TOTVS Microsiga Protheus..."))
-    local hOleConn as hash := QRHGetProviders(hINI)
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
 
     with object hOleConn["TargetConnection"]
         if (:State==adStateOpen )
             hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
             with object hOleConn["SRB"]
                 #pragma __cstream|cSource:=%s
-                    SELECT * FROM SRB010 SRA ORDER BY RB_NOME,RB_FILIAL
+                    SELECT * FROM SRB010 SRA ORDER BY RB_NOME,RB_FILIAL,RB_MAT,RB_COD
                 #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SRB010"=>"SRB"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Dependentes TOTVS Microsiga Protheus..."))
                 WAIT WINDOW cTitle NOWAIT
-                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
+                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_NOME,RB_FILIAL,RB_MAT,RB_COD")
                 WAIT CLEAR
                 QRH2TOTVSProtheusBrowseData(hOleConn["SRB"],cTitle)
                 :Close()
@@ -554,7 +592,45 @@ static function QRHFuncionariosDependentesBrowse(hINI as hash)
 
 return
 
+static function QRHFuncionariosAfastamentosBrowse(hINI as hash)
+
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
+    local cSource as character
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SR8"]
+                #pragma __cstream|cSource:=%s
+                    SELECT * FROM SR8010 SRA ORDER BY R8_FILIAL,R8_MAT,R8_SEQ
+                #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Afastamentos TOTVS Microsiga Protheus..."))
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_SEQ")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SR8"],cTitle)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
+
 #include "QRHFuncionarios.prg"
+#include "QRHFuncionariosAfastamentos.prg"
 #include "QRHFuncionariosDependentes.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"

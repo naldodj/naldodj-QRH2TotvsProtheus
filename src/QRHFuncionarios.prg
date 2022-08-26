@@ -8,6 +8,7 @@ procedure QRHFuncionarios(hINI as hash)
     local cEmpresa as character
     local cMatricula as character
     local cFuncionarioID as character
+    local cTOTVSEmpresa as character
 
     local cSource as string
     local cTargetField as character
@@ -33,6 +34,13 @@ procedure QRHFuncionarios(hINI as hash)
     local oError as object
 
     local xValue
+    
+    cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
 
     WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários Quarta RH...")) NOWAIT
 
@@ -187,7 +195,7 @@ procedure QRHFuncionarios(hINI as hash)
                                      ORDER BY SRA.RA_FILIAL
                                              ,SRA.RA_MAT
                                 #pragma __endtext
-                                cSource:=hb_StrReplace(cSource,{'Filial'=>cFilial,'Matricula'=>cMatricula})
+                                cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula})
                                 QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_FILIAL,RA_MAT")
                                 :Find("RA_MAT='"+cMatricula+"'",0,1)
                                 lAddNew:=(:eof())
@@ -217,9 +225,9 @@ procedure QRHFuncionarios(hINI as hash)
                                         catch oError
                                             cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
-                                                'cTargetField'=>cTargetField,;
-                                                'xValue'=>cValToChar(xValue),;
-                                                'Description'=>oError:Description,;
+                                                "cTargetField"=>cTargetField,;
+                                                "xValue"=>cValToChar(xValue),;
+                                                "Description"=>oError:Description,;
                                                 ";"=>hb_eol();
                                             }))
                                         end try

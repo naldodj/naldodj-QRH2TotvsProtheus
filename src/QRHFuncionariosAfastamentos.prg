@@ -1,10 +1,10 @@
 #include "minigui.ch"
 
-procedure QRHFuncionariosDependentes(hINI as hash)
+procedure QRHFuncionariosAfastamentos(hINI as hash)
 
     local cErrorMsg as character
 
-    local cRBCod as character
+    local cR8Seq as character
     local cFilial as character
     local cEmpresa as character
     local cMatricula as character
@@ -17,7 +17,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
 
     local cCommonFindKey as character
 
-    local hFields as hash := hINI["FuncionariosDependentes"]
+    local hFields as hash := hINI["FuncionariosAfastamentos"]
     local hOleConn as hash := QRHGetProviders(hINI)
 
     local lLoop as logical
@@ -29,7 +29,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
     local nMatricula as numeric
     local nFuncionarioID as numeric
 
-    local nSRBRecNo as numeric
+    local nSR8RecNo as numeric
 
     local nRow as numeric
     local nComplete as numeric
@@ -45,7 +45,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
         return
     endif
 
-    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Dependentes Quarta RH...")) NOWAIT
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Afastamentos Quarta RH...")) NOWAIT
 
         with object hOleConn["SourceConnection"]
             if (:State==adStateOpen )
@@ -56,37 +56,37 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["Funcionarios"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
-                hOleConn["FuncionarioDependentes"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["FuncionarioDependentes"]
+                hOleConn["HistAfastamentos"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["HistAfastamentos"]
                     #pragma __cstream|cSource:=%s
-                        SELECT * FROM FuncionarioDependentes ORDER BY Empresa,Matricula,FuncionarioID,FuncionarioDependenteID
+                        SELECT * FROM HistAfastamentos ORDER BY Empresa,Matricula,FuncionarioID,ID
                     #pragma __endtext
-                    QRHOpenRecordSet(hOleConn["FuncionarioDependentes"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,FuncionarioDependenteID")
+                    QRHOpenRecordSet(hOleConn["HistAfastamentos"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,ID")
                 end with
             endif
         end
 
     WAIT CLEAR
 
-    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Dependentes TOTVS Microsiga Protheus...")) NOWAIT
+    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Afastamentos TOTVS Microsiga Protheus...")) NOWAIT
 
         with object hOleConn["TargetConnection"]
             if (:State==adStateOpen )
-                hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["SRB"]
+                hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["SR8"]
                     #pragma __cstream|cSource:=%s
-                        SELECT (MAX(SRB.R_E_C_N_O_)+1) SRBRECNO
-                          FROM SRB010 SRB
+                        SELECT (MAX(SR8.R_E_C_N_O_)+1) SR8RECNO
+                          FROM SR8010 SR8
                     #pragma __endtext
-                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"SRBRECNO")
+                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"SR8RECNO")
                     if (:eof())
-                        nSRBRecNo:=1
+                        nSR8RecNo:=1
                     else
-                        nSRBRecNo:=:Fields("SRBRECNO"):Value
+                        nSR8RecNo:=:Fields("SR8RECNO"):Value
                     endif
                     :Close()
                 end with
-                hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
+                hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with
 
@@ -96,7 +96,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
         if (:State==adStateOpen )
             with object hOleConn["TargetConnection"]
                 if (:State==adStateOpen )
-                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Dependentes"))+"...")
+                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Afastamentos"))+"...")
                     with object hOleConn["Funcionarios"]
                         nRow:=0
                         :MoveFirst()
@@ -113,7 +113,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                             cCommonFindKey+="Matricula="+cMatricula
                             cCommonFindKey+=" AND "
                             cCommonFindKey:="FuncionarioID="+cFuncionarioID
-                            with object hOleConn["FuncionarioDependentes"]
+                            with object hOleConn["HistAfastamentos"]
                                 :MoveFirst()
                                 :Find(cCommonFindKey,0,1)
                                 nRBCod:=0
@@ -129,38 +129,38 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                     endif
                                     for each cTargetField in hb_HKeys(hFields)
                                         switch cTargetField
-                                          case "RB_FILIAL"
-                                          case "RB_MAT"
-                                          case "RB_COD"
-                                            if (cTargetField=="RB_COD")
-                                                xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,nil,"RB_COD",++nRBCod)
+                                          case "R8_FILIAL"
+                                          case "R8_MAT"
+                                          case "R8_SEQ"
+                                            if (cTargetField=="R8_SEQ")
+                                                xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,nil,"R8_SEQ",++nRBCod)
                                             else
                                                 xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
                                             endif
-                                            if (cTargetField=="RB_FILIAL")
+                                            if (cTargetField=="R8_FILIAL")
                                                 cFilial:=xValue    
-                                            elseif (cTargetField=="RB_MAT")
+                                            elseif (cTargetField=="R8_MAT")
                                                 cMatricula:=xValue
-                                            elseif (cTargetField=="RB_COD")
-                                                cRBCod:=xValue
+                                            elseif (cTargetField=="R8_SEQ")
+                                                cR8Seq:=xValue
                                             endif
                                         end switch
                                     next each                                    
-                                    with object hOleConn["SRB"]
+                                    with object hOleConn["SR8"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
-                                              FROM SRB010 SRB
-                                             WHERE SRB.D_E_L_E_T_=' '
-                                               AND SRB.RB_FILIAL='Filial'
-                                               AND SRB.RB_MAT='Matricula'
-                                               AND SRB.RB_COD='Codigo'
-                                             ORDER BY SRB.RB_FILIAL
-                                                     ,SRB.RB_MAT
-                                                     ,SRB.RB_COD
+                                              FROM SR8010 SR8
+                                             WHERE SR8.D_E_L_E_T_=' '
+                                               AND SR8.R8_FILIAL='Filial'
+                                               AND SR8.R8_MAT='Matricula'
+                                               AND SR8.R8_SEQ='Sequencia'
+                                             ORDER BY SR8.R8_FILIAL
+                                                     ,SR8.R8_MAT
+                                                     ,SR8.R8_SEQ
                                         #pragma __endtext
-                                        cSource:=hb_StrReplace(cSource,{"SRB010"=>"SRB"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"Codigo"=>cRBCod})
-                                        QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
-                                        :Find("RB_MAT='"+cMatricula+"'",0,1)
+                                        cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"Sequencia"=>cR8Seq})
+                                        QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_SEQ")
+                                        :Find("R8_MAT='"+cMatricula+"'",0,1)
                                         lAddNew:=(:eof())
                                         if (lAddNew)
                                             :AddNew()
@@ -170,10 +170,10 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                             lRecNo:=(cTargetField=="R_E_C_N_O_")
                                             if (lRecNo)
                                                 if (lAddNew)
-                                                    xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop,"R_E_C_N_O_",nSRBRecNo++)
+                                                    xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop,"R_E_C_N_O_",nSR8RecNo++)
                                                 endif
-                                            elseif (cTargetField=="RB_COD")
-                                                xValue:=cRBCod
+                                            elseif (cTargetField=="R8_SEQ")
+                                                xValue:=cR8Seq
                                             else
                                                 xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop)
                                             endif
@@ -229,6 +229,6 @@ procedure QRHFuncionariosDependentes(hINI as hash)
         endif
     end whith
 
-    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Dependentes Finalizada")))
+    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Afastamentos Finalizada")))
 
 return
