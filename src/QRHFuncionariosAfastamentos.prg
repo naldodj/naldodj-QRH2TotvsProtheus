@@ -59,6 +59,31 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                 hOleConn["HistAfastamentos"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["HistAfastamentos"]
                     #pragma __cstream|cSource:=%s
+                        SELECT *  
+                          FROM HistAfastamentos  
+                          WHERE (
+                                    SELECT Count(*) 
+                                      FROM HistAfastamentos AS HA  
+                                     WHERE HA.FuncionarioID=HistAfastamentos.FuncionarioID
+                                       AND HA.Empresa=HistAfastamentos.Empresa
+                                       AND HA.Matricula=HistAfastamentos.Matricula
+                                       AND HA.Data=HistAfastamentos.Data
+                                       AND HA.ID>=HistAfastamentos.ID
+                           ) > 1;
+                    #pragma __endtext
+                    QRHOpenRecordSet(hOleConn["HistAfastamentos"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,ID")
+                    with object hOleConn["HistAfastamentos"]
+                        while (!:eof())
+                            :Delete()
+                            :Update()
+                            :MoveNext()
+                        end while
+                        :Close()
+                    end with
+                end with
+                hOleConn["HistAfastamentos"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["HistAfastamentos"]
+                    #pragma __cstream|cSource:=%s
                         SELECT * FROM HistAfastamentos ORDER BY Empresa,Matricula,FuncionarioID,ID
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["HistAfastamentos"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,ID")
