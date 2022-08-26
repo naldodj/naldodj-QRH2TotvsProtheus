@@ -72,6 +72,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
 
         with object hOleConn["TargetConnection"]
             if (:State==adStateOpen )
+                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
                 hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["SRB"]
                     #pragma __cstream|cSource:=%s
@@ -146,60 +147,76 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                             endif
                                         end switch
                                     next each                                    
-                                    with object hOleConn["SRB"]
+                                    with object hOleConn["SRA"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
-                                              FROM SRB010 SRB
-                                             WHERE SRB.D_E_L_E_T_=' '
-                                               AND SRB.RB_FILIAL='Filial'
-                                               AND SRB.RB_MAT='Matricula'
-                                               AND SRB.RB_COD='Codigo'
-                                             ORDER BY SRB.RB_FILIAL
-                                                     ,SRB.RB_MAT
-                                                     ,SRB.RB_COD
+                                              FROM SRA010 SRA
+                                             WHERE SRA.D_E_L_E_T_=' '
+                                               AND SRA.RA_FILIAL='Filial'
+                                               AND SRA.RA_MAT='Matricula'
+                                             ORDER BY SRA.RA_FILIAL
+                                                     ,SRA.RA_MAT
                                         #pragma __endtext
-                                        cSource:=hb_StrReplace(cSource,{"SRB010"=>"SRB"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"Codigo"=>cRBCod})
-                                        QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
-                                        :Find("RB_MAT='"+cMatricula+"'",0,1)
-                                        lAddNew:=(:eof())
-                                        if (lAddNew)
-                                            :AddNew()
+                                        cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula})
+                                        QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_FILIAL,RA_MAT")
+                                        :Find("RA_MAT='"+cMatricula+"'",0,1)
+                                        if (!:eof())
+                                            with object hOleConn["SRB"]
+                                                #pragma __cstream|cSource:=%s
+                                                    SELECT *
+                                                      FROM SRB010 SRB
+                                                     WHERE SRB.D_E_L_E_T_=' '
+                                                       AND SRB.RB_FILIAL='Filial'
+                                                       AND SRB.RB_MAT='Matricula'
+                                                       AND SRB.RB_COD='Codigo'
+                                                     ORDER BY SRB.RB_FILIAL
+                                                             ,SRB.RB_MAT
+                                                             ,SRB.RB_COD
+                                                #pragma __endtext
+                                                cSource:=hb_StrReplace(cSource,{"SRB010"=>"SRB"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"Codigo"=>cRBCod})
+                                                QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_FILIAL,RB_MAT,RB_COD")
+                                                :Find("RB_MAT='"+cMatricula+"'",0,1)
+                                                lAddNew:=(:eof())
+                                                if (lAddNew)
+                                                    :AddNew()
+                                                endif
+                                                for each cTargetField in hb_HKeys(hFields)
+                                                    lLoop:=.F.
+                                                    lRecNo:=(cTargetField=="R_E_C_N_O_")
+                                                    if (lRecNo)
+                                                        if (lAddNew)
+                                                            xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop,"R_E_C_N_O_",nSRBRecNo++)
+                                                        endif
+                                                    elseif (cTargetField=="RB_COD")
+                                                        xValue:=cRBCod
+                                                    else
+                                                        xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop)
+                                                    endif
+                                                    if (lLoop)
+                                                        loop
+                                                    endif
+                                                    if (lRecNo)
+                                                        if (lAddNew)
+                                                            :Fields(cTargetField):Value:=xValue
+                                                        endif
+                                                    else
+                                                        try
+                                                            :Fields(cTargetField):Value:=xValue
+                                                        catch oError
+                                                            cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
+                                                            MsgInfo(hb_StrReplace(cErrorMsg,{;
+                                                                "cTargetField"=>cTargetField,;
+                                                                "xValue"=>cValToChar(xValue),;
+                                                                "Description"=>oError:Description,;                                                        
+                                                                ";"=>hb_eol();
+                                                            }))
+                                                        end try
+                                                    endif
+                                                next each
+                                                :Update()
+                                                :Close()
+                                            end whith
                                         endif
-                                        for each cTargetField in hb_HKeys(hFields)
-                                            lLoop:=.F.
-                                            lRecNo:=(cTargetField=="R_E_C_N_O_")
-                                            if (lRecNo)
-                                                if (lAddNew)
-                                                    xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop,"R_E_C_N_O_",nSRBRecNo++)
-                                                endif
-                                            elseif (cTargetField=="RB_COD")
-                                                xValue:=cRBCod
-                                            else
-                                                xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop)
-                                            endif
-                                            if (lLoop)
-                                                loop
-                                            endif
-                                            if (lRecNo)
-                                                if (lAddNew)
-                                                    :Fields(cTargetField):Value:=xValue
-                                                endif
-                                            else
-                                                try
-                                                    :Fields(cTargetField):Value:=xValue
-                                                catch oError
-                                                    cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
-                                                    MsgInfo(hb_StrReplace(cErrorMsg,{;
-                                                        "cTargetField"=>cTargetField,;
-                                                        "xValue"=>cValToChar(xValue),;
-                                                        "Description"=>oError:Description,;                                                        
-                                                        ";"=>hb_eol();
-                                                    }))
-                                                end try
-                                            endif
-                                        next each
-                                        :Update()
-                                        :Close()
                                     end whith
                                     :MoveNext()
                                 end while

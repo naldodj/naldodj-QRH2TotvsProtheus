@@ -14,6 +14,8 @@ DECLARE WINDOW Form_QRH2Protheus
 
 procedure main
 
+    local cIni as character := "QRH2TOTVSProtheus.ini"
+    
     local hINI as hash
 
 	SET CENTURY ON
@@ -25,7 +27,7 @@ procedure main
         WIDTH 600 HEIGHT 400 ;
         TITLE "Connecti :: Quarta RH To TOTVS Microsiga Protheus " ;
         MAIN ;
-        ON INIT hINI:=hb_iniRead("QRH2TOTVSProtheus.ini")
+        ON INIT hINI:=hb_iniRead(cIni)
         DEFINE MAIN MENU
             DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Importação"))
@@ -41,8 +43,8 @@ procedure main
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\QRH2TOTVSProtheus.ini")
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead("QRH2TOTVSProtheus.ini"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\"+cIni)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead(cIni))
                 END POPUP
                 SEPARATOR
                 ITEM 'E&xit' ACTION Form_MainQRH2Protheus.Release()
@@ -342,6 +344,8 @@ function FindInTable(hINI as hash,cTable as character,xValue)
     if (hb_HHasKey(hINI,cTable))
         if (hb_HHasKey(hINI[cTable],xValue))
             xValue:=hINI[cTable][xValue]
+        elseif (hb_HHasKey(hINI[cTable],"__DFV__"))
+            xValue:=hINI[cTable]["__DFV__"]
         endif
     endif
 
