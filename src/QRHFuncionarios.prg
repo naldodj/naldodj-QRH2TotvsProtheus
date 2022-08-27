@@ -103,6 +103,7 @@ procedure QRHFuncionarios(hINI as hash)
                         SELECT (MAX(SRA.R_E_C_N_O_)+1) SRARECNO
                           FROM SRA010 SRA
                     #pragma __endtext
+                    cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0"})
                     QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"SRARECNO")
                     if (:eof())
                         nSRARecNo:=1
@@ -221,7 +222,14 @@ procedure QRHFuncionarios(hINI as hash)
                                         endif
                                     else
                                         try
-                                            :Fields(cTargetField):Value:=xValue
+                                            switch (:Fields(cTargetField):Type)
+                                              case adBinary
+                                              case adLongVarBinary
+                                                :Fields(cTargetField):AppendChunk(xValue)
+                                                exit
+                                            otherwise
+                                                :Fields(cTargetField):Value:=xValue
+                                            endswitch
                                         catch oError
                                             cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
                                             MsgInfo(hb_StrReplace(cErrorMsg,{;

@@ -104,6 +104,7 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                         SELECT (MAX(SR8.R_E_C_N_O_)+1) SR8RECNO
                           FROM SR8010 SR8
                     #pragma __endtext
+                    cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0"})
                     QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"SR8RECNO")
                     if (:eof())
                         nSR8RecNo:=1
@@ -226,7 +227,14 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                                                         endif
                                                     else
                                                         try
-                                                            :Fields(cTargetField):Value:=xValue
+                                                            switch (:Fields(cTargetField):Type)
+                                                              case adBinary
+                                                              case adLongVarBinary
+                                                                :Fields(cTargetField):AppendChunk(xValue)
+                                                                exit
+                                                            otherwise
+                                                                :Fields(cTargetField):Value:=xValue
+                                                            endswitch
                                                         catch oError
                                                             cErrorMsg:="TargetField='cTargetField';Value='xValue';Error='Description'"
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
