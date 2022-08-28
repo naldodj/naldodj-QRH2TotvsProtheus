@@ -14,7 +14,7 @@ REQUEST HB_CODEPAGE_UTF8EX
 
 DECLARE WINDOW Form_QRH2Protheus
 
-static st_aTables
+static st_hTables
 
 procedure main
 
@@ -51,7 +51,7 @@ procedure main
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\"+cIni)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead(cIni))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead(cIni),st_hTables:={=>})
                 END POPUP
                 SEPARATOR
                 ITEM 'E&xit' ACTION Form_MainQRH2Protheus.Release()
@@ -240,7 +240,7 @@ function QRH2TotvsProtheusGetEmpresa(hINI)
 
 return(cTOTVSEmpresa) as character
 
-function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical,lRemoveVowel as logical)
+function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical,lRemoveVowel as logical,hTruncateName as hash)
 
     local aSplitName as array
 
@@ -254,12 +254,14 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as log
     local nString as numeric
     local nSplitName as numeric
     local nTruncateName as numeric
-
+    
     begin sequence
 
         hb_default(@nMaxChar,40)
         hb_default(@lRemoveSpace,.T.)
         hb_default(@lFirst,.F.)
+        hb_default(@lRemoveVowel,.F.)
+        hb_default(@hTruncateName,{=>})
 
         cTruncateName:=allTrim(cName)
         if (len(cTruncateName)<=nMaxChar)
@@ -294,6 +296,16 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as log
 
         nTruncateName:=0
         cTruncateName:=allTrim(cTruncateName)
+        
+        if (len(cTruncateName)>nMaxChar)
+            cTruncateName:=hb_strReplace(cTruncateName,hTruncateName)
+            aSplitName:=hb_aTokens(cTruncateName," ")
+            nSplitName:=Len(aSplitName)
+        endif
+
+        nTruncateName:=0
+        cTruncateName:=allTrim(cTruncateName)
+        
         while (len(cTruncateName)>nMaxChar)
             nTruncateName++
             if (nTruncateName>nSplitName)
@@ -350,8 +362,6 @@ function FindInTable(hINI as hash,cTable as character,xValue,lTIniFile as logica
 
     local hTable as hash
     
-    local nTIniFile as numeric
-    
     local oTIniFile as object
     
     local xTmp
@@ -370,13 +380,12 @@ function FindInTable(hINI as hash,cTable as character,xValue,lTIniFile as logica
         if (hb_HHasKey(hINI[cTable],"FindInTableFile"))
             hb_default(@lTIniFile,.F.)
             if (lTIniFile)
-                hb_default(@st_aTables,array(0))
-                nTIniFile:=aScan(nTIniFile,{|x|x[1]==cTable})
-                if (nTIniFile==0)
+                hb_default(@st_hTables,{=>})
+                if (!hb_HHasKey(st_hTables,cTable))
                     oTIniFile:=TIniFile():New(hINI[cTable]["FindInTableFile"])
-                    aAdd(st_aTables,{cTable,oTIniFile})
+                    st_hTables[cTable]:=oTIniFile
                 else
-                    oTIniFile:=st_aTables[nTIniFile][2]
+                    oTIniFile:=st_hTables[cTable]
                 endif
                 xTmp:=oTIniFile:ReadString(cTable,xValue,"")
                 if (empty(xTmp))
@@ -395,6 +404,23 @@ function FindInTable(hINI as hash,cTable as character,xValue,lTIniFile as logica
     endif
 
 return(xValue)
+
+function LoadFromJSONFile(cJSONFile as character)
+
+    local hJSON as hash
+
+    if (hb_FileExists(cJSONFile))
+        if (!hb_HHasKey(st_hTables,cJSONFile))
+            hJSON:=hb_JSONDecode(MemoRead(cJSONFile))
+            st_hTables[cJSONFile]:=hJSON
+        else
+            hJSON:=st_hTables[cJSONFile]
+        endif
+    else
+        hJSON:={=>}
+    endif
+    
+return(hJSON) as hash
 
 function Concatenate(hINI as hash,hTable as hash,cTable as character,cToken as character,...)
 
