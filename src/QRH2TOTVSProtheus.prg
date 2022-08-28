@@ -82,9 +82,9 @@ static function CreateProgressBar( cTitle )
       NOSIZE ;
       FONT 'Tahoma' SIZE 11
 
-   @ 10, 80 ANIMATEBOX Avi_1 ;
-      WIDTH 260 HEIGHT 40 ;
-      FILE 'filecopy.avi' ;
+   @ 10, 160 ANIMATEBOX Avi_1 ;
+      WIDTH 500 HEIGHT 40 ;
+      FILE 'QRH2TOTVSProtheus.avi' ;
       AUTOPLAY TRANSPARENT NOBORDER
 
    @ 75, 10 LABEL Label_1 ;
