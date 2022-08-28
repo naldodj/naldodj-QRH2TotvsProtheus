@@ -332,7 +332,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                                             switch (:Fields(cTargetField):Type)
                                                               case adBinary
                                                               case adLongVarBinary
-                                                                :Fields(cTargetField):AppendChunk(subStr(xValue,nChunk,1))
+                                                                :Fields(cTargetField):AppendChunk(xValue)
                                                                 exit
                                                             otherwise
                                                                 :Fields(cTargetField):Value:=xValue
