@@ -240,15 +240,17 @@ function QRH2TotvsProtheusGetEmpresa(hINI)
 
 return(cTOTVSEmpresa) as character
 
-function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical)
+function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical,lRemoveVowel as logical)
 
     local aSplitName as array
 
     local cString as character
+    local cVowels as character := "aAeEiIoOuU"
     local cTruncateName as character
 
     local lTrucateName as logical
 
+    local nVowel as numeric
     local nString as numeric
     local nSplitName as numeric
     local nTruncateName as numeric
@@ -303,7 +305,13 @@ function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as log
                 if ((if(!lFirst,nString>1,lFirst)).and.(nString<nSplitName))
                     if ((len(aSplitName[nString])>1).and.(lTrucateName))
                         lTrucateName:=.F.
-                        aSplitName[nString]:=Left(aSplitName[nString],1)
+                        if (lRemoveVowel)
+                            for nVowel:=1 to Len(cVowels)
+                                aSplitName[nString]:=strTran(aSplitName[nString],cVowels[nVowel],"")
+                            next nVowel
+                        else
+                            aSplitName[nString]:=Left(aSplitName[nString],1)
+                        endif
                         cTruncateName+=aSplitName[nString]
                     else
                         cTruncateName+=aSplitName[nString]
@@ -702,7 +710,7 @@ static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash)
 
                 #pragma __endtext
                 cSource:=hb_StrReplace(cSource,{"SR3010"=>"SR3"+cTOTVSEmpresa+"0"})
-                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Histórico Salário SR3 TOTVS Microsiga Protheus..."))
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Hist.Salário SR3 TOTVS Microsiga Protheus"))
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SR3"],hOleConn["TargetConnection"],cSource,"R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")
                 WAIT CLEAR
@@ -746,7 +754,7 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash)
                              ,SR7.R7_TIPO
                 #pragma __endtext
                 cSource:=hb_StrReplace(cSource,{"SR7010"=>"SR7"+cTOTVSEmpresa+"0"})
-                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Histórico Salário SR7 TOTVS Microsiga Protheus..."))
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Hist.Salário SR7 TOTVS Microsiga Protheus"))
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SR7"],hOleConn["TargetConnection"],cSource,"R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")
                 WAIT CLEAR
