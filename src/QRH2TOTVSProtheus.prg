@@ -739,13 +739,14 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash)
             hOleConn["SR7"]:=TOleAuto():New("ADODB.RecordSet")
             with object hOleConn["SR7"]
                 #pragma __cstream|cSource:=%s
-                    SELECT * 
+                    SELECT *
+                          ,ISNULL(CAST(CAST(SR7.R7_DESCA AS VARBINARY(MAX)) AS NVARCHAR(MAX)),'') AS [R7_DESCA_MEMOFIELD]
                       FROM SR7010 SR7
                      ORDER BY SR7.R7_FILIAL
-                              ,SR7.R7_MAT
-                              ,SR7.R7_DATA
-                              ,SR7.R7_SEQ
-                              ,SR7.R7_TIPO
+                             ,SR7.R7_MAT
+                             ,SR7.R7_DATA
+                             ,SR7.R7_SEQ
+                             ,SR7.R7_TIPO
                 #pragma __endtext
                 cSource:=hb_StrReplace(cSource,{"SR7010"=>"SR7"+cTOTVSEmpresa+"0"})
                 cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Histórico Salário SR7 TOTVS Microsiga Protheus..."))
