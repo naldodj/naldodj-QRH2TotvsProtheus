@@ -27,6 +27,7 @@ METHOD New( cFileName ) CLASS TIniFile
 
    LOCAL lDone, hFile, cFile, cLine, cIdent, nPos
    LOCAL CurrArray
+   LOCAL cCHR10:=Chr( 10 )
 
    IF Empty( cFileName )
       // raise an error?
@@ -47,15 +48,15 @@ METHOD New( cFileName ) CLASS TIniFile
       cLine := ""
       lDone := .F.
       DO WHILE ! lDone
-         cFile := Space( 256 )
-         lDone := ( FRead( hFile, @cFile, 256 ) <= 0 )
+         cFile := Space( 1024 )
+         lDone := ( FRead( hFile, @cFile, 1024 ) <= 0 )
 
          cFile := StrTran( cFile, Chr( 13 ) ) // so we can just search for Chr( 10 )
 
          // prepend last read
          cFile := cLine + cFile
          DO WHILE ! Empty( cFile )
-            IF ( nPos := At( Chr( 10 ), cFile ) ) > 0
+            IF ( nPos := At( cCHR10, cFile ) ) > 0
                cLine := Left( cFile, nPos - 1 )
                cFile := SubStr( cFile, nPos + 1 )
 
@@ -275,26 +276,28 @@ METHOD PROCEDURE UpdateFile() CLASS TIniFile
 
    LOCAL i, j
 
+   LOCAL cHB_EOL:=hb_eol()
+   
    LOCAL hFile := FCreate( ::Filename )
 
    FOR i := 1 TO Len( ::Contents )
       IF ::Contents[ i ][ 1 ] == NIL
-         FWrite( hFile, ::Contents[ i ][ 2 ] + hb_eol() )
+         FWrite( hFile, ::Contents[ i ][ 2 ] + cHB_EOL )
 
       ELSEIF HB_ISARRAY( ::Contents[ i ][ 2 ] )
-         FWrite( hFile, "[" + ::Contents[ i ][ 1 ] + "]" + hb_eol() )
+         FWrite( hFile, "[" + ::Contents[ i ][ 1 ] + "]" + cHB_EOL )
          FOR j := 1 TO Len( ::Contents[ i ][ 2 ] )
 
             IF ::Contents[ i ][ 2 ][ j ][ 1 ] == NIL
-               FWrite( hFile, ::Contents[ i ][ 2 ][ j ][ 2 ] + hb_eol() )
+               FWrite( hFile, ::Contents[ i ][ 2 ][ j ][ 2 ] + cHB_EOL )
             ELSE
-               FWrite( hFile, ::Contents[ i ][ 2 ][ j ][ 1 ] + "=" + ::Contents[ i ][ 2 ][ j ][ 2 ] + hb_eol() )
+               FWrite( hFile, ::Contents[ i ][ 2 ][ j ][ 1 ] + "=" + ::Contents[ i ][ 2 ][ j ][ 2 ] + cHB_EOL )
             ENDIF
          NEXT
-         FWrite( hFile, hb_eol() )
+         FWrite( hFile, cHB_EOL )
 
       ELSEIF HB_ISSTRING( ::Contents[ i ][ 2 ] )
-         FWrite( hFile, ::Contents[ i ][ 1 ] + "=" + ::Contents[ i ][ 2 ] + hb_eol() )
+         FWrite( hFile, ::Contents[ i ][ 1 ] + "=" + ::Contents[ i ][ 2 ] + cHB_EOL )
 
       ENDIF
    NEXT

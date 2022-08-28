@@ -355,6 +355,8 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                         :Close()
                                     end whith
                                     :MoveNext()
+                                    // refreshing
+                                    InkeyGui()
                                 end while
                             end whith
                             nComplete:=Int((nRow/:RecordCount)*100)
