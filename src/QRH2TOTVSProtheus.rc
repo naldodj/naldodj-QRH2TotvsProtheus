@@ -1,9 +1,11 @@
-#if defined( OS2 ) || defined( __OS2__ ) || defined( OS_2 )
-#else
-#if ! defined( __BORLANDC__ )
-    Main    ICON "./QRH2TOTVSProtheus.ico"
-    AppIcon ICON "./QRH2TOTVSProtheus.ico"
-#endif
-#include "QRH2TOTVSProtheus_win.rc"
-    __HB_CREATEPROCESS_MANIFEST_RESOURCE_ID __HB_RT_MANIFEST "./QRH2TOTVSProtheus_win.mft"
-#endif
+//#if defined( OS2 ) || defined( __OS2__ ) || defined( OS_2 )
+//#else
+//#if ! defined( __BORLANDC__ )
+    Main    ICON ".\rc\QRH2TOTVSProtheus.ico"
+    AppIcon ICON ".\rc\QRH2TOTVSProtheus.ico"
+    QRH2TOTVSProtheusExcel16 BITMAP ".\rc\QRH2TOTVSProtheusExcel16.bmp"
+    QRH2TOTVSProtheusExitb16 BITMAP ".\rc\QRH2TOTVSProtheusExitb16.bmp"
+//#endif
+//#include "QRH2TOTVSProtheus_win.rc"
+//    __HB_CREATEPROCESS_MANIFEST_RESOURCE_ID __HB_RT_MANIFEST "./mft/QRH2TOTVSProtheus_win.mft"
+//#endif

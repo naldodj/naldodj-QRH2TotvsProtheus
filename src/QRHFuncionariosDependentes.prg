@@ -225,6 +225,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                                                 :Close()
                                             end whith
                                         endif
+                                        :Close()
                                     end whith
                                     :MoveNext()
                                 end while

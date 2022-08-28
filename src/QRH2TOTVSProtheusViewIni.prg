@@ -15,13 +15,13 @@
 Function QRH2TOTVSProtheusViewIni(cIniFile)
 *-----------------------------
 
-    SET DEFAULT Icon TO GetStartupFolder() + "\QRH2TOTVSProtheus.ico"
+    SET DEFAULT Icon TO GetStartupFolder() + "\rc\QRH2TOTVSProtheus.ico"
 
 	DEFINE WINDOW Form_ViewIni ;
 		AT 338,157 WIDTH 638 HEIGHT 420+iif(IsThemed(),2*GetBorderHeight(),0) ;
 		TITLE "Connecti :: Quarta RH To TOTVS Microsiga Protheus " ;
 		CHILD;
-        ICON GetStartupFolder()+"\QRH2TOTVSProtheus.ico" ;
+        ICON GetStartupFolder()+"\rc\QRH2TOTVSProtheus.ico" ;
 		ON INIT {|| IIF(!EMPTY(cIniFile), OPEN_INI(strtran(cIniFile,'"','')), )} ;
 		ON MAXIMIZE RESIZEIT() ;
 		ON SIZE RESIZEIT()

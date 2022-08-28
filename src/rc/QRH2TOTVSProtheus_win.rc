@@ -18,6 +18,12 @@
 
 /* Version info */
 
+Main    ICON ".\rc\QRH2TOTVSProtheus.ico"
+AppIcon ICON ".\rc\QRH2TOTVSProtheus.ico"
+
+QRH2TOTVSProtheusExcel16 BITMAP ".\rc\QRH2TOTVSProtheusExcel16.bmp"
+QRH2TOTVSProtheusExitb16 BITMAP ".\rc\QRH2TOTVSProtheusExitb16.bmp"
+
 #include "C:\MinGW\include\winver.h"
 
 VS_VERSION_INFO VERSIONINFO

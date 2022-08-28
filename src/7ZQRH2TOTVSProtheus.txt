@@ -1,7 +1,0 @@
-.\QRH2TOTVSProtheus.avi
-.\QRH2TOTVSProtheus.exe
-.\QRH2TOTVSProtheus.ico
-.\QRH2TOTVSProtheus.ini
-.\QRH2TOTVSProtheusTabelaCID.ini
-.\QRH2TOTVSProtheusTabelaTipoDeAumento.ini
-.\QRH2TOTVSProtheusTruncateNames.json

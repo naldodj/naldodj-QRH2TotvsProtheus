@@ -1,0 +1,4 @@
+..\QRH2TOTVSProtheus.exe
+..\rc\
+..\ini\
+..\json\

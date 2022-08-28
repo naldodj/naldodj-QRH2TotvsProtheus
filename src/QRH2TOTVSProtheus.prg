@@ -18,13 +18,13 @@ static st_hTables
 
 procedure main
 
-    local cIni as character := "QRH2TOTVSProtheus.ini"
+    local cIni as character := ".\ini\QRH2TOTVSProtheus.ini"
     
     local hINI as hash
 
 	SET CENTURY ON
 
-    SET DEFAULT Icon TO GetStartupFolder() + "\QRH2TOTVSProtheus.ico"
+    SET DEFAULT Icon TO GetStartupFolder() + "\rc\QRH2TOTVSProtheus.ico"
 
     DEFINE WINDOW Form_MainQRH2Protheus ;
         AT 0, 0 ;
@@ -47,6 +47,13 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI)
+                END POPUP
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Consulta &Excel"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRA) &Funcionários ")) ACTION QRHFuncionariosBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRB) &Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI,.T.)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
@@ -593,7 +600,7 @@ function getTargetFieldValue(hINI as hash,cTargetField as character,hFields as h
 
 return(xValue)
 
-static function QRHFuncionariosBrowse(hINI as hash)
+static function QRHFuncionariosBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -621,7 +628,7 @@ static function QRHFuncionariosBrowse(hINI as hash)
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_CIC,RA_FILIAL")
                 WAIT CLEAR
-                QRH2TOTVSProtheusBrowseData(hOleConn["SRA"],cTitle)
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRA"],cTitle,lExcel)
                 :Close()
             end with
         endif
@@ -630,7 +637,7 @@ static function QRHFuncionariosBrowse(hINI as hash)
 
 return
 
-static function QRHFuncionariosDependentesBrowse(hINI as hash)
+static function QRHFuncionariosDependentesBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -658,7 +665,7 @@ static function QRHFuncionariosDependentesBrowse(hINI as hash)
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"RB_NOME,RB_FILIAL,RB_MAT,RB_COD")
                 WAIT CLEAR
-                QRH2TOTVSProtheusBrowseData(hOleConn["SRB"],cTitle)
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRB"],cTitle,lExcel)
                 :Close()
             end with
         endif
@@ -667,7 +674,7 @@ static function QRHFuncionariosDependentesBrowse(hINI as hash)
 
 return
 
-static function QRHFuncionariosAfastamentosBrowse(hINI as hash)
+static function QRHFuncionariosAfastamentosBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -695,7 +702,7 @@ static function QRHFuncionariosAfastamentosBrowse(hINI as hash)
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_SEQ")
                 WAIT CLEAR
-                QRH2TOTVSProtheusBrowseData(hOleConn["SR8"],cTitle)
+                QRH2TOTVSProtheusBrowseData(hOleConn["SR8"],cTitle,lExcel)
                 :Close()
             end with
         endif
@@ -704,7 +711,7 @@ static function QRHFuncionariosAfastamentosBrowse(hINI as hash)
 
 return
 
-static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash)
+static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -740,7 +747,7 @@ static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash)
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SR3"],hOleConn["TargetConnection"],cSource,"R3_FILIAL,R3_MAT,R3_DATA,R3_SEQ,R3_TIPO,R3_PD")
                 WAIT CLEAR
-                QRH2TOTVSProtheusBrowseData(hOleConn["SR3"],cTitle)
+                QRH2TOTVSProtheusBrowseData(hOleConn["SR3"],cTitle,lExcel)
                 :Close()
             end with
         endif
@@ -749,7 +756,7 @@ static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash)
 
 return
 
-static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash)
+static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -784,7 +791,7 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash)
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SR7"],hOleConn["TargetConnection"],cSource,"R7_FILIAL,R7_MAT,R7_DATA,R7_SEQ,R7_TIPO")
                 WAIT CLEAR
-                QRH2TOTVSProtheusBrowseData(hOleConn["SR7"],cTitle)
+                QRH2TOTVSProtheusBrowseData(hOleConn["SR7"],cTitle,lExcel)
                 :Close()
             end with
         endif
@@ -793,12 +800,11 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash)
 
 return
 
-#include "TIniFile.prg"
-
 #include "QRHFuncionarios.prg"
 #include "QRHFuncionariosDependentes.prg"
 #include "QRHFuncionariosAfastamentos.prg"
 #include "QRHFuncionariosHistCargosSalarios.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"
+#include "QRH2TOTVSProtheusTIniFile.prg"
 #include "QRH2TOTVSProtheusBrowseData.prg"
