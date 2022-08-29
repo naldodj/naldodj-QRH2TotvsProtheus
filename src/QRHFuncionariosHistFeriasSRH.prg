@@ -99,14 +99,14 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                               ,DateAdd("d",-2,[ConcedInicial]) AS RH_PERIODO
                               ,IIF([HistFerias].[AbonoPecuniario]<>0,'2','1') AS RH_ABOPEC
                               ,(
-                                SELECT Valor 
+                                SELECT Max(Valor)
                                    FROM [HistFolha] 
                                   WHERE [HistFolha].[FuncionarioID]=[HistFerias].[FuncionarioID]
-                                    AND [HistFolha].[TipoFolha]=7 
+                                    AND [HistFolha].[TipoFolha] IN (1,7) 
                                     AND [HistFolha].[Codigo]=1
                                     AND (
-                                            mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)<=mid(format([HistFerias].[ConcedInicial],'yyyymmdd'),1,6)
-                                        AND mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)>=mid(format(DateAdd("d",-30,[ConcedInicial]),'yyyymmdd'),1,6)
+                                            mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)<=mid(format(DateAdd("d",+30,[HistFerias].[ConcedInicial]),'yyyymmdd'),1,6)
+                                        AND mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)>=mid(format(DateAdd("d",-30,[HistFerias].[ConcedInicial]),'yyyymmdd'),1,6)
                                    )
                              ) AS RH_SALARIO                              
                          FROM
