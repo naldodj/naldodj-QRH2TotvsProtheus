@@ -39,14 +39,16 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentes(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Afastamentos")) ACTION QRHFuncionariosAfastamentos(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Histórico Salários")) ACTION QRHFuncionariosHistCargosSalarios(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Programação de Férias")) ACTION QRHFuncionariosHistFerias(hINI)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Consulta"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRA) &Funcionários ")) ACTION QRHFuncionariosBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRB) &Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasBrowse(hINI)
                 END POPUP
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Consulta &Excel"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRA) &Funcionários ")) ACTION QRHFuncionariosBrowse(hINI,.T.)
@@ -54,6 +56,7 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasBrowse(hINI,.T.)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
@@ -800,9 +803,54 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash,lExcel a
 
 return
 
+procedure QRHFuncionariosHistFeriasBrowse(hINI as hash,lExcel as logical)
+
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
+    local cSource as character
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SRF"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SRF"]
+                #pragma __cstream|cSource:=%s
+                    SELECT *
+                      FROM SRF010 SRF
+                     WHERE SRF.D_E_L_E_T_=' '
+                  ORDER BY SRF.RF_FILIAL
+                          ,SRF.RF_MAT
+                          ,SRF.RF_DATABAS
+                          ,SRF.RF_PD
+                #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SRF010"=>"SRF"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Hist.Férias SRF TOTVS Microsiga Protheus"))
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SRF"],hOleConn["TargetConnection"],cSource,"RF_FILIAL,RF_MAT,RF_DATABAS,RF_PD")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRF"],cTitle,lExcel)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
+
 #include "QRHFuncionarios.prg"
 #include "QRHFuncionariosDependentes.prg"
 #include "QRHFuncionariosAfastamentos.prg"
+
+#include "QRHFuncionariosHistFerias.prg"
 #include "QRHFuncionariosHistCargosSalarios.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"
