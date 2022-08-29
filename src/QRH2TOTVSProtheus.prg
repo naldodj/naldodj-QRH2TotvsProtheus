@@ -7,7 +7,7 @@
 #include "xhb.ch"
 #include "minigui.ch"
 
-#include "c:\minigui\source\adordd\adordd.ch"
+#include "c:\minigui\harbour\extras\rddado\adordd.ch"
 
 REQUEST HB_CODEPAGE_PTISO
 REQUEST HB_CODEPAGE_UTF8EX
@@ -39,7 +39,8 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Dependentes")) ACTION QRHFuncionariosDependentes(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Afastamentos")) ACTION QRHFuncionariosAfastamentos(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Histórico Salários")) ACTION QRHFuncionariosHistCargosSalarios(hINI)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Programação de Férias")) ACTION QRHFuncionariosHistFerias(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRF(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRH(hINI)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Consulta"))
@@ -47,16 +48,18 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRB) &Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasBrowse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRFBrowse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRH) &Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRHBrowse(hINI)
                 END POPUP
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Consulta &Excel"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRA) &Funcionários ")) ACTION QRHFuncionariosBrowse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRB) &Dependentes")) ACTION QRHFuncionariosDependentesBrowse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamentos")) ACTION QRHFuncionariosAfastamentosBrowse(hINI,.T.)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI,.T.)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) &Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI,.T.)
-                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&3) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR3Browse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRFBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRH) &Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRHBrowse(hINI,.T.)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
@@ -803,7 +806,7 @@ static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash,lExcel a
 
 return
 
-procedure QRHFuncionariosHistFeriasBrowse(hINI as hash,lExcel as logical)
+procedure QRHFuncionariosHistFeriasSRFBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -846,11 +849,55 @@ procedure QRHFuncionariosHistFeriasBrowse(hINI as hash,lExcel as logical)
 
 return
 
+procedure QRHFuncionariosHistFeriasSRHBrowse(hINI as hash,lExcel as logical)
+
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
+    local cSource as character
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SRH"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SRH"]
+                #pragma __cstream|cSource:=%s
+                    SELECT *
+                      FROM SRH010 SRH
+                     WHERE SRH.D_E_L_E_T_=' '
+                  ORDER BY SRH.RH_FILIAL
+                          ,SRH.RH_MAT
+                          ,SRH.RH_DATABAS
+                          ,SRH.RH_DATAINI
+                #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SRH010"=>"SRH"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Hist.Férias SRH TOTVS Microsiga Protheus"))
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SRH"],hOleConn["TargetConnection"],cSource,"RH_FILIAL,RH_MAT,RH_DATABAS,RH_DATAINI")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SRH"],cTitle,lExcel)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
+
 #include "QRHFuncionarios.prg"
 #include "QRHFuncionariosDependentes.prg"
 #include "QRHFuncionariosAfastamentos.prg"
 
-#include "QRHFuncionariosHistFerias.prg"
+#include "QRHFuncionariosHistFeriasSRF.prg"
+#include "QRHFuncionariosHistFeriasSRH.prg"
 #include "QRHFuncionariosHistCargosSalarios.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"

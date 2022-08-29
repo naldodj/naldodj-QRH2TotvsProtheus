@@ -31,7 +31,7 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel)
     DEFINE SPLITBOX
       DEFINE TOOLBAREX Bar_1 BUTTONSIZE 28, 28
          BUTTON btn_Excel PICTURE "QRH2TOTVSPROTHEUSEXCEL16" ;
-            ACTION fExcel(oQRH2TotvsBrowseData,nil,cTitle) ;
+            ACTION fExcel(oQRH2TotvsBrowseData,cTitle+".xls",cTitle) ;
             TOOLTIP "Export Browse to Excel"
          BUTTON btn_Exit PICTURE "QRH2TOTVSPROTHEUSEXITB16" ;
             ACTION ThisWindow.Release ;
@@ -72,12 +72,12 @@ Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
 
    Local lActivate, lSave, hFont, nVer:=1
 
-   Default cFile  := Padr( "NoName.xls", 60 ), ;
+   Default cFile  := Padr( "NoName.xls", 255 ), ;
            cTitle := "TSBrowse/Excel Conectivity"
 
    lActivate := .T.
    lSave     := .F.
-   cTitle    := PadR( cTitle, 60 )
+   cTitle    := PadR( cTitle, 255 )
 
    IF ! _IsControlDefined ("cFont1","Main")
       DEFINE FONT cFont1 FONTNAME "MS Sans Serif" SIZE 11 BOLD
@@ -95,7 +95,7 @@ Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
          HEIGHT 18 ;
          WIDTH 282 ;
          VALUE cFile ;
-         ACTION {||Form_Excel.BtnTxt1.Value:= PadR( fSaveFile(cFile), 60 ) }
+         ACTION {||Form_Excel.BtnTxt1.Value:= PadR( fSaveFile(cFile), 255 ) }
 
       @ 54, 12 LABEL Lb2 VALUE "Title "   WIDTH 38
 

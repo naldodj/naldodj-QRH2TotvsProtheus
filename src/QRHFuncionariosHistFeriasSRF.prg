@@ -1,6 +1,6 @@
 #include "minigui.ch"
 
-procedure QRHFuncionariosHistFerias(hINI as hash)
+procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
 
     local cErrorMsg as character
 
@@ -17,7 +17,7 @@ procedure QRHFuncionariosHistFerias(hINI as hash)
 
     local cCommonFindKey as character
 
-    local hFields as hash := hINI["FuncionariosFerias"]
+    local hFields as hash := hINI["FuncionariosFeriasSRF"]
     local hOleConn as hash := QRHGetProviders(hINI)
 
     local lLoop as logical
@@ -70,9 +70,9 @@ procedure QRHFuncionariosHistFerias(hINI as hash)
                               ,Sum([HistFerias.AbonoPecuniario]) AS AbonoPecuniario
                               ,Sum([HistFerias.FeriasColetivas]) AS FeriasColetivas
                               ,Sum([HistFerias.13Salario]) AS 13Salario
-                              ,'' AS Notas
-                              ,IIF(DateDiff("yyyy",RefInicial,date())>=1,30,0) AS RF_DFERVAT
-                              ,IIF(DateDiff("yyyy",RefInicial,date())>=1,0,((((DateDiff("m",RefInicial,date())/30)*2.5))*30)) AS RF_DFERAAT
+                              ,Max([Notas]) AS Notas
+                              ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS RF_DFERVAT
+                              ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS RF_DFERAAT
                           FROM HistFerias
                          GROUP 
                             BY FuncionarioID
