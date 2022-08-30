@@ -4,12 +4,16 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
 
     local cErrorMsg as character
 
-    local cR8Seq as character
+    local cR8SEQ as character
+    local cR8Tipo as character
+    local cR8TipoAfa as character
+    local cR8DataIni as character
+
     local cFilial as character
     local cEmpresa as character
     local cMatricula as character
     local cFuncionarioID as character
-    
+
     local cTOTVSEmpresa as character
 
     local cSource as character
@@ -17,14 +21,15 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
 
     local cCommonFindKey as character
 
-    local hFields as hash := hINI["FuncionariosAfastamentos"]
+    local hFields as hash := hINI["QRHFuncionariosAfastamentos"]
     local hOleConn as hash := QRHGetProviders(hINI)
 
     local lLoop as logical
     local lRecNo as logical
     local lAddNew as logical
+    local lIncSeq as logical
 
-    local nRBCod as numeric
+    local nR8SEQ as numeric
     local nEmpresa as numeric
     local nMatricula as numeric
     local nFuncionarioID as numeric
@@ -37,7 +42,7 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
     local oError as object
 
     local xValue
-    
+
     cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
 
     if (empty(cTOTVSEmpresa))
@@ -59,11 +64,11 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                 hOleConn["HistAfastamentos"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["HistAfastamentos"]
                     #pragma __cstream|cSource:=%s
-                        SELECT *  
-                          FROM HistAfastamentos  
+                        SELECT *
+                          FROM HistAfastamentos
                           WHERE (
-                                    SELECT Count(*) 
-                                      FROM HistAfastamentos AS HA  
+                                    SELECT Count(*)
+                                      FROM HistAfastamentos AS HA
                                      WHERE HA.FuncionarioID=HistAfastamentos.FuncionarioID
                                        AND HA.Empresa=HistAfastamentos.Empresa
                                        AND HA.Matricula=HistAfastamentos.Matricula
@@ -97,15 +102,14 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
 
         with object hOleConn["TargetConnection"]
             if (:State==adStateOpen )
-                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
-                hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["SR8"]
+                hOleConn["SR8RECNO"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["SR8RECNO"]
                     #pragma __cstream|cSource:=%s
                         SELECT (MAX(SR8.R_E_C_N_O_)+1) SR8RECNO
                           FROM SR8010 SR8
                     #pragma __endtext
                     cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0"})
-                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"SR8RECNO")
+                    QRHOpenRecordSet(hOleConn["SR8RECNO"],hOleConn["TargetConnection"],cSource,"SR8RECNO")
                     if (:eof())
                         nSR8RecNo:=1
                     else
@@ -113,7 +117,9 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                     endif
                     :Close()
                 end with
+                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
                 hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
+                hOleConn["SR8SEQ"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with
 
@@ -143,7 +149,6 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                             with object hOleConn["HistAfastamentos"]
                                 :MoveFirst()
                                 :Find(cCommonFindKey,0,1)
-                                nRBCod:=0
                                 while (!:eof())
                                     if !(;
                                             (nEmpresa==:Fields("Empresa"):Value);
@@ -158,21 +163,23 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                                         switch cTargetField
                                           case "R8_FILIAL"
                                           case "R8_MAT"
-                                          case "R8_SEQ"
-                                            if (cTargetField=="R8_SEQ")
-                                                xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,nil,"R8_SEQ",++nRBCod)
-                                            else
-                                                xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
-                                            endif
+                                          case "R8_DATAINI"
+                                          case "R8_TIPO"
+                                          case "R8_TIPOAFA"
+                                            xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
                                             if (cTargetField=="R8_FILIAL")
-                                                cFilial:=xValue    
+                                                cFilial:=xValue
                                             elseif (cTargetField=="R8_MAT")
                                                 cMatricula:=xValue
-                                            elseif (cTargetField=="R8_SEQ")
-                                                cR8Seq:=xValue
+                                            elseif (cTargetField=="R8_DATAINI")
+                                                cR8DataIni:=xValue
+                                            elseif (cTargetField=="R8_TIPO")
+                                                cR8Tipo:=xValue
+                                            elseif (cTargetField=="R8_TIPOAFA")
+                                                cR8TipoAfa:=xValue
                                             endif
                                         end switch
-                                    next each                                    
+                                    next each
                                     with object hOleConn["SRA"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
@@ -187,20 +194,65 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                                         QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_FILIAL,RA_MAT")
                                         :Find("RA_MAT='"+cMatricula+"'",0,1)
                                         if (!:eof())
+                                            with object hOleConn["SR8SEQ"]
+                                                #pragma __cstream|cSource:=%s
+                                                    SELECT 'MAX' TYPESEQ
+                                                          ,MAX(R8_SEQ) R8_SEQ
+                                                      FROM SR8010 SR8
+                                                     WHERE SR8.R8_FILIAL='Filial'
+                                                       AND SR8.R8_MAT='Matricula'
+                                                       AND SR8.R8_DATAINI='DataIni'
+                                                     UNION
+                                                    SELECT 'DEF' TYPESEQ
+                                                          ,R8_SEQ
+                                                      FROM SR8010 SR8
+                                                     WHERE SR8.R8_FILIAL='Filial'
+                                                       AND SR8.R8_MAT='Matricula'
+                                                       AND SR8.R8_DATAINI='DataIni'
+                                                       AND SR8.R8_TIPO='Tipo'
+                                                       AND SR8.R8_TIPOAFA='TipoAfa'
+                                                #pragma __endtext
+                                                cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"DataIni"=>cR8DataIni,"TipoAfa"=>cR8TipoAfa,"Tipo"=>cR8Tipo})
+                                                QRHOpenRecordSet(hOleConn["SR8SEQ"],hOleConn["TargetConnection"],cSource,"TYPESEQ")
+                                                lIncSeq:=.F.
+                                                if (:eof())
+                                                    cR8SEQ:="1"
+                                                else
+                                                    :Find("TYPESEQ='DEF'",0,1)
+                                                    if (:eof())
+                                                        :Find("TYPESEQ='MAX'",0,1)
+                                                        if (:eof())
+                                                            cR8SEQ:="1"
+                                                        else
+                                                            lIncSeq:=.T.
+                                                            cR8SEQ:=:Fields("TYPESEQ"):Value
+                                                        endif
+                                                    else
+                                                        cR8SEQ:=:Fields("TYPESEQ"):Value
+                                                    endif
+                                                endif
+                                                nR8SEQ:=val(cR8SEQ)
+                                                nR8SEQ+=if(lIncSeq,1,0)
+                                                cR8SEQ:=getTargetFieldValue(hIni,"R8_SEQ",hFields,hOleConn,cFilial,cMatricula,cEmpresa,nil,"R8_SEQ",nR8SEQ)
+                                                :Close()
+                                            end whith
                                             with object hOleConn["SR8"]
                                                 #pragma __cstream|cSource:=%s
                                                     SELECT *
                                                       FROM SR8010 SR8
-                                                     WHERE SR8.D_E_L_E_T_=' '
-                                                       AND SR8.R8_FILIAL='Filial'
+                                                     WHERE SR8.R8_FILIAL='Filial'
                                                        AND SR8.R8_MAT='Matricula'
-                                                       AND SR8.R8_SEQ='Sequencia'
-                                                     ORDER BY SR8.R8_FILIAL
-                                                             ,SR8.R8_MAT
-                                                             ,SR8.R8_SEQ
+                                                       AND SR8.R8_DATAINI='DataIni'
+                                                       AND SR8.R8_TIPO='Tipo'
+                                                       AND SR8.R8_TIPOAFA='TipoAfa'
+                                                  ORDER BY SR8.R8_FILIAL
+                                                          ,SR8.R8_MAT
+                                                          ,SR8.R8_DATAINI
+                                                          ,SR8.R8_TIPO
+                                                          ,SR8.R8_TIPOAFA
                                                 #pragma __endtext
-                                                cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"Sequencia"=>cR8Seq})
-                                                QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_SEQ")
+                                                cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0","Filial"=>cFilial,"Matricula"=>cMatricula,"DataIni"=>cR8DataIni,"TipoAfa"=>cR8TipoAfa,"Tipo"=>cR8Tipo})
+                                                QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")
                                                 :Find("R8_MAT='"+cMatricula+"'",0,1)
                                                 lAddNew:=(:eof())
                                                 if (lAddNew)
@@ -214,7 +266,7 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                                                             xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop,"R_E_C_N_O_",nSR8RecNo++)
                                                         endif
                                                     elseif (cTargetField=="R8_SEQ")
-                                                        xValue:=cR8Seq
+                                                        xValue:=cR8SEQ
                                                     else
                                                         xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa,@lLoop)
                                                     endif
@@ -240,7 +292,7 @@ procedure QRHFuncionariosAfastamentos(hINI as hash)
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
                                                                 "cTargetField"=>cTargetField,;
                                                                 "xValue"=>cValToChar(xValue),;
-                                                                "Description"=>oError:Description,;                                                        
+                                                                "Description"=>oError:Description,;
                                                                 ";"=>hb_eol();
                                                             }))
                                                         end try

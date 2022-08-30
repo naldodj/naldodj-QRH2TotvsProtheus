@@ -17,7 +17,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
 
     local cCommonFindKey as character
 
-    local hFields as hash := hINI["FuncionariosDependentes"]
+    local hFields as hash := hINI["QRHFuncionariosDependentes"]
     local hOleConn as hash := QRHGetProviders(hINI)
 
     local lLoop as logical
@@ -72,15 +72,14 @@ procedure QRHFuncionariosDependentes(hINI as hash)
 
         with object hOleConn["TargetConnection"]
             if (:State==adStateOpen )
-                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
-                hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["SRB"]
+                hOleConn["SRBRECNO"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["SRBRECNO"]
                     #pragma __cstream|cSource:=%s
                         SELECT (MAX(SRB.R_E_C_N_O_)+1) SRBRECNO
                           FROM SRB010 SRB
                     #pragma __endtext
                     cSource:=hb_StrReplace(cSource,{"SRB010"=>"SRB"+cTOTVSEmpresa+"0"})
-                    QRHOpenRecordSet(hOleConn["SRB"],hOleConn["TargetConnection"],cSource,"SRBRECNO")
+                    QRHOpenRecordSet(hOleConn["SRBRECNO"],hOleConn["TargetConnection"],cSource,"SRBRECNO")
                     if (:eof())
                         nSRBRecNo:=1
                     else
@@ -88,6 +87,7 @@ procedure QRHFuncionariosDependentes(hINI as hash)
                     endif
                     :Close()
                 end with
+                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
                 hOleConn["SRB"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with

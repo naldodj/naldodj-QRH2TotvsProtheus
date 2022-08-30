@@ -25,7 +25,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
 
     local cCommonFindKey as character
 
-    local hFields as hash := hINI["FuncionariosHistCargosSalarios"]
+    local hFields as hash := hINI["QRHFuncionariosHistCargosSalarios"]
     local hOleConn as hash := QRHGetProviders(hINI)
 
     local lLoop as logical
@@ -82,15 +82,14 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
 
         with object hOleConn["TargetConnection"]
             if (:State==adStateOpen )
-                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
-                hOleConn["SR3"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["SR3"]
+                hOleConn["SR3RECNO"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["SR3RECNO"]
                     #pragma __cstream|cSource:=%s
                         SELECT (MAX(SR3.R_E_C_N_O_)+1) SR3RECNO
                           FROM SR3010 SR3
                     #pragma __endtext
                     cSource:=hb_StrReplace(cSource,{"SR3010"=>"SR3"+cTOTVSEmpresa+"0"})
-                    QRHOpenRecordSet(hOleConn["SR3"],hOleConn["TargetConnection"],cSource,"SR3RECNO")
+                    QRHOpenRecordSet(hOleConn["SR3RECNO"],hOleConn["TargetConnection"],cSource,"SR3RECNO")
                     if (:eof())
                         nSR3RecNo:=1
                     else
@@ -98,15 +97,14 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                     endif
                     :Close()
                 end with
-                hOleConn["SR3"]:=TOleAuto():New("ADODB.RecordSet")
-                hOleConn["SR7"]:=TOleAuto():New("ADODB.RecordSet")
-                with object hOleConn["SR7"]
+                hOleConn["SR7RECNO"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["SR7RECNO"]
                     #pragma __cstream|cSource:=%s
                         SELECT (MAX(SR7.R_E_C_N_O_)+1) SR7RECNO
                           FROM SR7010 SR7
                     #pragma __endtext
                     cSource:=hb_StrReplace(cSource,{"SR7010"=>"SR7"+cTOTVSEmpresa+"0"})
-                    QRHOpenRecordSet(hOleConn["SR7"],hOleConn["TargetConnection"],cSource,"SR7RECNO")
+                    QRHOpenRecordSet(hOleConn["SR7RECNO"],hOleConn["TargetConnection"],cSource,"SR7RECNO")
                     if (:eof())
                         nSR7RecNo:=1
                     else
@@ -114,6 +112,8 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                     endif
                     :Close()
                 end with
+                hOleConn["SR3"]:=TOleAuto():New("ADODB.RecordSet")
+                hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
                 hOleConn["SR7"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with

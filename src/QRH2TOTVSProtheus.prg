@@ -41,6 +41,7 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Histórico Salários")) ACTION QRHFuncionariosHistCargosSalarios(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRF(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRH(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("Afastamento de &Férias")) ACTION QRHFuncionariosHistFeriasSR8(hINI)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("&Consulta"))
@@ -51,6 +52,7 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRFBrowse(hINI)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRH) &Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRHBrowse(hINI)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamento de &Férias")) ACTION QRHFuncionariosHistFeriasSR8Browse(hINI)
                 END POPUP
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Consulta &Excel"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRA) &Funcionários ")) ACTION QRHFuncionariosBrowse(hINI,.T.)
@@ -60,6 +62,7 @@ procedure main
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR&7) Hist Salários")) ACTION QRHFuncionariosHistCargosSalariosSR7Browse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRF) &Programação de Férias")) ACTION QRHFuncionariosHistFeriasSRFBrowse(hINI,.T.)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SRH) &Histórico de Férias")) ACTION QRHFuncionariosHistFeriasSRHBrowse(hINI,.T.)
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("(SR8) &Afastamento de &Férias")) ACTION QRHFuncionariosHistFeriasSR8Browse(hINI,.T.)
                 END POPUP
                 SEPARATOR
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
@@ -584,7 +587,7 @@ function getTargetFieldValue(hINI as hash,cTargetField as character,hFields as h
             break
         endif
 
-        if (lTable)
+        if ((lTable).and.(hb_HHasKey(hOleConn,cSourceTable)))
             with object hOleConn[cSourceTable]
                 lLoop:=(:eof())
                 if (lLoop)
@@ -606,7 +609,7 @@ function getTargetFieldValue(hINI as hash,cTargetField as character,hFields as h
 
 return(xValue)
 
-static function QRHFuncionariosBrowse(hINI as hash,lExcel as logical)
+static procedure QRHFuncionariosBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -643,7 +646,7 @@ static function QRHFuncionariosBrowse(hINI as hash,lExcel as logical)
 
 return
 
-static function QRHFuncionariosDependentesBrowse(hINI as hash,lExcel as logical)
+static procedure QRHFuncionariosDependentesBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -680,7 +683,7 @@ static function QRHFuncionariosDependentesBrowse(hINI as hash,lExcel as logical)
 
 return
 
-static function QRHFuncionariosAfastamentosBrowse(hINI as hash,lExcel as logical)
+static procedure QRHFuncionariosAfastamentosBrowse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -701,12 +704,18 @@ static function QRHFuncionariosAfastamentosBrowse(hINI as hash,lExcel as logical
             hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
             with object hOleConn["SR8"]
                 #pragma __cstream|cSource:=%s
-                    SELECT * FROM SR8010 SR8 ORDER BY R8_FILIAL,R8_MAT,R8_SEQ
+                    SELECT *
+                      FROM SR8010 SR8
+                  ORDER BY SR8.R8_FILIAL
+                          ,SR8.R8_MAT
+                          ,SR8.R8_DATAINI
+                          ,SR8.R8_TIPO
+                          ,SR8.R8_TIPOAFA
                 #pragma __endtext
                 cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0"})
                 cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Afastamentos TOTVS Microsiga Protheus..."))
                 WAIT WINDOW cTitle NOWAIT
-                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_SEQ")
+                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")
                 WAIT CLEAR
                 QRH2TOTVSProtheusBrowseData(hOleConn["SR8"],cTitle,lExcel)
                 :Close()
@@ -717,7 +726,7 @@ static function QRHFuncionariosAfastamentosBrowse(hINI as hash,lExcel as logical
 
 return
 
-static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash,lExcel as logical)
+static procedure QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -762,7 +771,7 @@ static function QRHFuncionariosHistCargosSalariosSR3Browse(hINI as hash,lExcel a
 
 return
 
-static function QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash,lExcel as logical)
+static procedure QRHFuncionariosHistCargosSalariosSR7Browse(hINI as hash,lExcel as logical)
 
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
 
@@ -892,12 +901,57 @@ procedure QRHFuncionariosHistFeriasSRHBrowse(hINI as hash,lExcel as logical)
 
 return
 
+procedure QRHFuncionariosHistFeriasSR8Browse(hINI as hash,lExcel as logical)
+
+    local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
+
+    local cTitle as character
+    local cSource as character
+
+    local hOleConn as hash
+
+    if (empty(cTOTVSEmpresa))
+        MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
+        return
+    endif
+
+    hOleConn:=QRHGetProviders(hINI)
+
+    with object hOleConn["TargetConnection"]
+        if (:State==adStateOpen )
+            hOleConn["SR8"]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn["SR8"]
+                #pragma __cstream|cSource:=%s
+                    SELECT *
+                      FROM SR8010 SR8
+                     WHERE SR8.R8_TIPO='F'
+                  ORDER BY SR8.R8_FILIAL
+                          ,SR8.R8_MAT
+                          ,SR8.R8_DATAINI
+                          ,SR8.R8_TIPO
+                          ,SR8.R8_TIPOAFA
+                #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"SR8010"=>"SR8"+cTOTVSEmpresa+"0"})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários/Hist.Férias SR8 TOTVS Microsiga Protheus"))
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn["SR8"],hOleConn["TargetConnection"],cSource,"R8_FILIAL,R8_MAT,R8_DATAINI,R8_TIPO,R8_TIPOAFA")
+                WAIT CLEAR
+                QRH2TOTVSProtheusBrowseData(hOleConn["SR8"],cTitle,lExcel)
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
+
+return
+
 #include "QRHFuncionarios.prg"
 #include "QRHFuncionariosDependentes.prg"
 #include "QRHFuncionariosAfastamentos.prg"
 
 #include "QRHFuncionariosHistFeriasSRF.prg"
 #include "QRHFuncionariosHistFeriasSRH.prg"
+#include "QRHFuncionariosHistFeriasSR8.prg"
 #include "QRHFuncionariosHistCargosSalarios.prg"
 
 #include "QRH2TOTVSProtheusViewIni.prg"
