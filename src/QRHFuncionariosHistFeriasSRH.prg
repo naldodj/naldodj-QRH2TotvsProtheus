@@ -10,7 +10,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
     local cDataBase as character
     local cMatricula as character
     local cFuncionarioID as character
-    
+
     local cTOTVSEmpresa as character
 
     local cSource as character
@@ -37,7 +37,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
     local oError as object
 
     local xValue
-    
+
     cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
 
     if (empty(cTOTVSEmpresa))
@@ -71,20 +71,20 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                              , [HistFerias].[DiasFerias]
                              , [HistFerias].[FeriasColetivas]
                              , (
-                                    SELECT [HFAB].[AbonoPecuniario] 
-                                      FROM [HistFerias] [HFAB] 
+                                    SELECT [HFAB].[AbonoPecuniario]
+                                      FROM [HistFerias] [HFAB]
                                       WHERE [HistFerias].[FuncionarioID]=[HFAB].[FuncionarioID]
                                         AND [HistFerias].[RefInicial]=[HFAB].[RefInicial]
                                         AND [HistFerias].[ConcedInicial]<>[HFAB].[ConcedInicial]
                                         AND [HFAB].[AbonoPecuniario]<>0
                                         AND [HistFerias].[AbonoPecuniario]=0
-                              ) AS AbonoPecuniario    
+                              ) AS AbonoPecuniario
                              , [HistFerias].[13Salario]
                              , [HistFerias].[Notas]
                              ,IIF(((((DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),[HistFerias].[RefFinal])/30)*2.5))*30)>30,30,((((DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),[HistFerias].[RefFinal])/30)*2.5))*30)) AS RH_DFERVEN
                              , (
-                                    SELECT [HFAB].[DiasFerias] 
-                                      FROM [HistFerias] [HFAB] 
+                                    SELECT [HFAB].[DiasFerias]
+                                      FROM [HistFerias] [HFAB]
                                       WHERE [HistFerias].[FuncionarioID]=[HFAB].[FuncionarioID]
                                         AND [HistFerias].[Empresa]=[HFAB].[Empresa]
                                         AND [HistFerias].[Matricula]=[HFAB].[Matricula]
@@ -92,7 +92,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                                         AND [HistFerias].[ConcedInicial]<>[HFAB].[ConcedInicial]
                                         AND [HFAB].[AbonoPecuniario]=0
                                         AND [HistFerias].[AbonoPecuniario]<>0
-                              ) AS RH_DABONPE    
+                              ) AS RH_DABONPE
                               ,IIF([HistFerias].[13Salario]<>0,50,0) AS RH_PERC13S
                               ,DateAdd("d",-30,[ConcedInicial]) AS RH_DTAVISO
                               ,DateAdd("d",-2,[ConcedInicial]) AS RH_DTRECIB
@@ -100,17 +100,18 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                               ,IIF([HistFerias].[AbonoPecuniario]<>0,'2','1') AS RH_ABOPEC
                               ,(
                                 SELECT Max(Valor)
-                                   FROM [HistFolha] 
+                                   FROM [HistFolha]
                                   WHERE [HistFolha].[FuncionarioID]=[HistFerias].[FuncionarioID]
-                                    AND [HistFolha].[TipoFolha] IN (1,7) 
+                                    AND [HistFolha].[TipoFolha] IN (1,7)
                                     AND [HistFolha].[Codigo]=1
                                     AND (
                                             mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)<=mid(format(DateAdd("d",+30,[HistFerias].[ConcedInicial]),'yyyymmdd'),1,6)
                                         AND mid(format([HistFolha].[DataCalculo],'yyyymmdd'),1,6)>=mid(format(DateAdd("d",-30,[HistFerias].[ConcedInicial]),'yyyymmdd'),1,6)
                                    )
-                             ) AS RH_SALARIO                              
+                             ) AS RH_SALARIO
                          FROM
                                [HistFerias]
+                        WHERE [HistFerias].[DiasFerias]>0
                         ORDER
                         BY Empresa,Matricula,FuncionarioID,RefInicial,ConcedInicial
                         ;
@@ -152,7 +153,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
         if (:State==adStateOpen )
             with object hOleConn["TargetConnection"]
                 if (:State==adStateOpen )
-                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Férias"))+"...")
+                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Histórico de Férias"))+"...")
                     with object hOleConn["Funcionarios"]
                         nRow:=0
                         :MoveFirst()
@@ -190,7 +191,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                                           case "RH_DATAINI"
                                             xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
                                             if (cTargetField=="RH_FILIAL")
-                                                cFilial:=xValue    
+                                                cFilial:=xValue
                                             elseif (cTargetField=="RH_MAT")
                                                 cMatricula:=xValue
                                             elseif (cTargetField=="RH_DATABAS")
@@ -199,7 +200,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                                                 cDataIni:=xValue
                                             endif
                                         end switch
-                                    next each                                    
+                                    next each
                                     with object hOleConn["SRA"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
@@ -267,7 +268,7 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
                                                                 "cTargetField"=>cTargetField,;
                                                                 "xValue"=>cValToChar(xValue),;
-                                                                "Description"=>oError:Description,;                                                        
+                                                                "Description"=>oError:Description,;
                                                                 ";"=>hb_eol();
                                                             }))
                                                         end try
@@ -307,6 +308,6 @@ procedure QRHFuncionariosHistFeriasSRH(hINI as hash)
         endif
     end whith
 
-    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Férias Finalizada")))
+    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Histórico de Férias Finalizada")))
 
 return

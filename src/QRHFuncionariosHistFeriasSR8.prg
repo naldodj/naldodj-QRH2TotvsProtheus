@@ -67,7 +67,8 @@ procedure QRHFuncionariosHistFeriasSR8(hINI as hash)
                         SELECT *
                          FROM
                                [HistFerias]
-                        WHERE (
+                        WHERE [HistFerias].[DiasFerias]>0
+                          AND (
                                     SELECT COUNT(*)
                                       FROM [HistFerias] [HFAB]
                                      WHERE [HistFerias].[FuncionarioID]=[HFAB].[FuncionarioID]
@@ -323,6 +324,6 @@ procedure QRHFuncionariosHistFeriasSR8(hINI as hash)
         endif
     end whith
 
-    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Afastamentos Finalizada")))
+    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Afastamentos de Férias Finalizada")))
 
 return

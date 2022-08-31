@@ -58,27 +58,21 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                 hOleConn["HistFerias"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["HistFerias"]
                     #pragma __cstream|cSource:=%s
-                        SELECT Min(HistFerias.FuncionarioID) AS FuncionarioID
-                              ,Min([HistFerias.Empresa]) AS Empresa
-                              ,Min([HistFerias.Matricula]) AS Matricula
-                              ,Min([HistFerias.RefInicial]) AS RefInicial 
-                              ,Min([HistFerias.RefFinal]) AS RefFinal 
-                              ,Sum([HistFerias.Faltas]) AS Faltas
-                              ,Min([HistFerias.ConcedInicial]) AS ConcedInicial
-                              ,Min([HistFerias.ConcedFinal]) AS ConcedFinal
-                              ,Sum([HistFerias.DiasFerias]) AS DiasFerias
-                              ,Sum([HistFerias.AbonoPecuniario]) AS AbonoPecuniario
-                              ,Sum([HistFerias.FeriasColetivas]) AS FeriasColetivas
-                              ,Sum([HistFerias.13Salario]) AS 13Salario
-                              ,Max([Notas]) AS Notas
+                        SELECT *
                               ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS RF_DFERVAT
                               ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS RF_DFERAAT
                           FROM HistFerias
-                         GROUP 
-                            BY FuncionarioID
-                              ,Empresa
-                              ,Matricula
-                              ,RefInicial
+                        WHERE (
+                                    SELECT COUNT(*)
+                                      FROM [HistFerias] [HFAB]
+                                     WHERE [HistFerias].[FuncionarioID]=[HFAB].[FuncionarioID]
+                                       AND [HistFerias].[Empresa]=[HFAB].[Empresa]
+                                       AND [HistFerias].[Matricula]=[HFAB].[Matricula]
+                                       AND [HistFerias].[RefInicial]=[HFAB].[RefInicial]
+                                       AND [HistFerias].[ConcedInicial]<>[HFAB].[ConcedInicial]
+                                       AND [HFAB].[AbonoPecuniario]=0
+                                       AND [HistFerias].[AbonoPecuniario]<>0
+                              )=0
                          ORDER
                             BY Empresa,Matricula,FuncionarioID,RefInicial
                     #pragma __endtext
@@ -119,7 +113,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
         if (:State==adStateOpen )
             with object hOleConn["TargetConnection"]
                 if (:State==adStateOpen )
-                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Férias"))+"...")
+                    CreateProgressBar("Importando "+hb_OemToAnsi(hb_UTF8ToStr("Programação de Férias"))+"...")
                     with object hOleConn["Funcionarios"]
                         nRow:=0
                         :MoveFirst()
@@ -271,6 +265,6 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
         endif
     end whith
 
-    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Férias Finalizada")))
+    MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Importação Programação de Férias")))
 
 return
