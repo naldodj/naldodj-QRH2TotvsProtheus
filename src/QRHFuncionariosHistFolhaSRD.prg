@@ -283,10 +283,17 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                         WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
                                                             for each oSRDOleData in hSRDData
                                                                 with object oSRDOleData
-                                                                    :Update()
-                                                                    :Close()
+                                                                    if (:State==adStateOpen )
+                                                                        :Update()
+                                                                        :Close()
+                                                                    endif
                                                                 end whith
                                                             next each
+                                                            for nSRDConn:=1 to 100
+                                                                if (hb_HHasKey(hSRDData,nSRDConn))
+                                                                    hb_hDel(hSRDData,nSRDConn)
+                                                                endif    
+                                                            next nSRDConn
                                                             nSRDConn:=1
                                                         WAIT CLEAR
                                                     endif
@@ -305,10 +312,17 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                 WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
                                     for each oSRDOleData in hSRDData
                                         with object oSRDOleData
-                                            :Update()
-                                            :Close()
+                                            if (:State==adStateOpen )
+                                                :Update()
+                                                :Close()
+                                            endif
                                         end whith
                                     next each
+                                    for nSRDConn:=1 to 100
+                                        if (hb_HHasKey(hSRDData,nSRDConn))
+                                            hb_hDel(hSRDData,nSRDConn)
+                                        endif    
+                                    next nSRDConn
                                 WAIT CLEAR
                                 nSRDConn:=0
                             endif
