@@ -1,5 +1,7 @@
 #include "minigui.ch"
 
+#define SRDUPDATEDATA 500
+
 procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
 
     local aRDSEQ as array := Array(0)
@@ -279,7 +281,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                         endif
                                                     next each
                                                     nSRDConn++
-                                                    if (nSRDConn>100)
+                                                    if (nSRDConn>SRDUPDATEDATA)
                                                         WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
                                                             for each oSRDOleData in hSRDData
                                                                 with object oSRDOleData
@@ -289,7 +291,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                                     endif
                                                                 end whith
                                                             next each
-                                                            for nSRDConn:=1 to 100
+                                                            for nSRDConn:=1 to Len(hSRDData)
                                                                 if (hb_HHasKey(hSRDData,nSRDConn))
                                                                     hb_hDel(hSRDData,nSRDConn)
                                                                 endif    
@@ -318,7 +320,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                             endif
                                         end whith
                                     next each
-                                    for nSRDConn:=1 to 100
+                                    for nSRDConn:=1 to Len(hSRDData)
                                         if (hb_HHasKey(hSRDData,nSRDConn))
                                             hb_hDel(hSRDData,nSRDConn)
                                         endif    
