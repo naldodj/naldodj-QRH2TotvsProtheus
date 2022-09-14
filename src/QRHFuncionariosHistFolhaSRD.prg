@@ -28,6 +28,8 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
     local hFieldsSRA as hash := hINI["QRHFuncionarios"]
 
     local hOleConn as hash := QRHGetProviders(hINI)
+    
+    local hSRDData as hash := {=>}
 
     local lLoop as logical
     local lRecNo as logical
@@ -40,12 +42,14 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
     local nMatricula as numeric
     local nFuncionarioID as numeric
 
+    local nSRDConn as numeric := 0
     local nSRDRecNo as numeric
 
     local nRow as numeric
     local nComplete as numeric
 
     local oError as object
+    local oSRDOleData as object
 
     local xValue
 
@@ -101,7 +105,6 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                     :Close()
                 end with
                 hOleConn["SRA"]:=TOleAuto():New("ADODB.RecordSet")
-                hOleConn["SRD"]:=TOleAuto():New("ADODB.RecordSet")
             endif
         end with
 
@@ -197,6 +200,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                 endif
                                                 nRDSEQ:=aRDSEQ[nATRDSEQ][1]
                                                 cRDSEQ:=getTargetFieldValue(hIni,"RD_SEQ",hFields,hOleConn,cFilial,cMatricula,cEmpresa,nil,"RD_SEQ",nRDSEQ)
+                                                hOleConn["SRD"]:=TOleAuto():New("ADODB.RecordSet")
                                                 with object hOleConn["SRD"]
                                                     #pragma __cstream|cSource:=%s
                                                         SELECT *
@@ -274,16 +278,40 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                             end try
                                                         endif
                                                     next each
-                                                    :Update()
-                                                    :Close()
+                                                    nSRDConn++
+                                                    if (nSRDConn>100)
+                                                        WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
+                                                            for each oSRDOleData in hSRDData
+                                                                with object oSRDOleData
+                                                                    :Update()
+                                                                    :Close()
+                                                                end whith
+                                                            next each
+                                                            nSRDConn:=1
+                                                        WAIT CLEAR
+                                                    endif
+                                                    hSRDData[nSRDConn]:=hOleConn["SRD"]
                                                 end whith
                                             endif
                                         endif
                                         :Close()
                                     end whith
                                     :MoveNext()
+                                    // refreshing
+                                    InkeyGui()
                                 end while
                             end whith
+                            if (nSRDConn>0)
+                                WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
+                                    for each oSRDOleData in hSRDData
+                                        with object oSRDOleData
+                                            :Update()
+                                            :Close()
+                                        end whith
+                                    next each
+                                WAIT CLEAR
+                                nSRDConn:=0
+                            endif
                             nComplete:=Int((nRow/:RecordCount)*100)
                             if (Mod(nComplete,10)==0)
                                 if (IsWindowDefined(Form_QRH2Protheus))
@@ -293,9 +321,9 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                     exit
                                 endif
                             endif
+                            :MoveNext()
                             // refreshing
                             InkeyGui()
-                            :MoveNext()
                         end while
                         :Close()
                     end whith
