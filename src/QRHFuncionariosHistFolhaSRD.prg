@@ -30,7 +30,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
     local hFieldsSRA as hash := hINI["QRHFuncionarios"]
 
     local hOleConn as hash := QRHGetProviders(hINI)
-    
+
     local hSRDData as hash := {=>}
 
     local lLoop as logical
@@ -294,7 +294,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                             for nSRDConn:=1 to Len(hSRDData)
                                                                 if (hb_HHasKey(hSRDData,nSRDConn))
                                                                     hb_hDel(hSRDData,nSRDConn)
-                                                                endif    
+                                                                endif
                                                             next nSRDConn
                                                             nSRDConn:=1
                                                         WAIT CLEAR
@@ -323,7 +323,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                     for nSRDConn:=1 to Len(hSRDData)
                                         if (hb_HHasKey(hSRDData,nSRDConn))
                                             hb_hDel(hSRDData,nSRDConn)
-                                        endif    
+                                        endif
                                     next nSRDConn
                                 WAIT CLEAR
                                 nSRDConn:=0

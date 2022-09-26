@@ -34,7 +34,7 @@ procedure QRHFuncionarios(hINI as hash)
     local oError as object
 
     local xValue
-    
+
     cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
 
     if (empty(cTOTVSEmpresa))

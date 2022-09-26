@@ -277,7 +277,7 @@ METHOD PROCEDURE UpdateFile() CLASS TIniFile
    LOCAL i, j
 
    LOCAL cHB_EOL:=hb_eol()
-   
+
    LOCAL hFile := FCreate( ::Filename )
 
    FOR i := 1 TO Len( ::Contents )

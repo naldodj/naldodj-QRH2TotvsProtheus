@@ -2,7 +2,7 @@
 
 procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
 
-    
+
     local cErrorMsg as character
 
     local cSeq as character
@@ -10,14 +10,14 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
 
     local cData as character
     local cLastData as character
-    
+
     local cTipo as character
-    
+
     local cFilial as character
     local cEmpresa as character
     local cMatricula as character
     local cFuncionarioID as character
-    
+
     local cTOTVSEmpresa as character
 
     local cSource as character
@@ -33,7 +33,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
     local lAddNew as logical
 
     local nSeq as numeric
-    
+
     local nEmpresa as numeric
     local nMatricula as numeric
     local nFuncionarioID as numeric
@@ -47,7 +47,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
     local oError as object
 
     local xValue
-    
+
     cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
 
     if (empty(cTOTVSEmpresa))
@@ -62,7 +62,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                 hOleConn["Funcionarios"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["Funcionarios"]
                     #pragma __cstream|cSource:=%s
-                        SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID 
+                        SELECT * FROM Funcionarios ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["Funcionarios"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
                 end with
@@ -169,7 +169,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                                 xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
                                             endif
                                             if (cTargetField=="R3_FILIAL")
-                                                cFilial:=xValue    
+                                                cFilial:=xValue
                                             elseif (cTargetField=="R3_MAT")
                                                 cMatricula:=xValue
                                             elseif (cTargetField=="R3_SEQ")
@@ -186,7 +186,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                                 cTipo:=xValue
                                             endif
                                         end switch
-                                    next each                                    
+                                    next each
                                     with object hOleConn["SRA"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
@@ -268,7 +268,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
                                                                 "cTargetField"=>cTargetField,;
                                                                 "xValue"=>cValToChar(xValue),;
-                                                                "Description"=>oError:Description,;                                                        
+                                                                "Description"=>oError:Description,;
                                                                 ";"=>hb_eol();
                                                             }))
                                                         end try
@@ -342,7 +342,7 @@ procedure QRHFuncionariosHistCargosSalarios(hINI as hash)
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
                                                                 "cTargetField"=>cTargetField,;
                                                                 "xValue"=>cValToChar(xValue),;
-                                                                "Description"=>oError:Description,;                                                        
+                                                                "Description"=>oError:Description,;
                                                                 ";"=>hb_eol();
                                                             }))
                                                         end try

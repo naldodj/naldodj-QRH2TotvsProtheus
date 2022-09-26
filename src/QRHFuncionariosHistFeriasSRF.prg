@@ -9,7 +9,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
     local cDataBase as character
     local cMatricula as character
     local cFuncionarioID as character
-    
+
     local cTOTVSEmpresa as character
 
     local cSource as character
@@ -36,7 +36,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
     local oError as object
 
     local xValue
-    
+
     cTOTVSEmpresa:=QRH2TotvsProtheusGetEmpresa(hINI)
 
     if (empty(cTOTVSEmpresa))
@@ -150,14 +150,14 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                                           case "RF_DATABAS"
                                             xValue:=getTargetFieldValue(hIni,cTargetField,hFields,hOleConn,cFilial,cMatricula,cEmpresa)
                                             if (cTargetField=="RF_FILIAL")
-                                                cFilial:=xValue    
+                                                cFilial:=xValue
                                             elseif (cTargetField=="RF_MAT")
                                                 cMatricula:=xValue
                                             elseif (cTargetField=="RF_DATABAS")
                                                 cDataBase:=xValue
                                             endif
                                         end switch
-                                    next each                                    
+                                    next each
                                     with object hOleConn["SRA"]
                                         #pragma __cstream|cSource:=%s
                                             SELECT *
@@ -225,7 +225,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                                                             MsgInfo(hb_StrReplace(cErrorMsg,{;
                                                                 "cTargetField"=>cTargetField,;
                                                                 "xValue"=>cValToChar(xValue),;
-                                                                "Description"=>oError:Description,;                                                        
+                                                                "Description"=>oError:Description,;
                                                                 ";"=>hb_eol();
                                                             }))
                                                         end try
