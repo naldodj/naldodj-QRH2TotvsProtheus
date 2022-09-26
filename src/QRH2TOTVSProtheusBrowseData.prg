@@ -149,24 +149,25 @@ return
 
 Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
 
-   Local lActivate, lSave, hFont, nVer:=1
+    Local lActivate, lSave, hFont, nVer:=1
 
-   Default cFile  := Padr( "NoName.xls", 255 ), ;
+    Default cFile  := Padr( "NoName.xls", 255 ), ;
            cTitle := "TSBrowse/Excel Conectivity"
 
-   lActivate := .T.
-   lSave     := .F.
-   cTitle    := PadR( cTitle, 255 )
+    lActivate := .T.
+    lSave     := .F.
+    cTitle    := PadR( cTitle, 255 )
+   
+    Eval(oQRH2TotvsBrowseData:bGoTop)
 
-   IF ! _IsControlDefined ("cFont1","Main")
-      DEFINE FONT cFont1 FONTNAME "MS Sans Serif" SIZE 11 BOLD
-   endif
-      hFont := GetFontHandle( "cFont1" )
+    IF ! _IsControlDefined ("cFont1","Main")
+        DEFINE FONT cFont1 FONTNAME "MS Sans Serif" SIZE 11 BOLD
+    endif
+    hFont := GetFontHandle( "cFont1" )
     IF !IsWIndowDefined ("Form_Excel" )
 
       DEFINE WINDOW Form_Excel At 150, 150 WIDTH 380 HEIGHT 240 ;
          TITLE cTitle CHILD TOPMOST
-
 
       @ 22,12 LABEL Lb1 VALUE "File: "  WIDTH 36
 
@@ -205,9 +206,8 @@ Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
             CAPTION "&Accept" ;
             ACTION {|| lSave := Form_Excel.Chk_2.Value, lActivate := Form_Excel.Chk_1.Value, ;
                If( nVer == 2, ;
-               /*oQRH2TotvsBrowseData:ExcelOle( Form_Excel.BtnTxt1.Value, lActivate,GetControlHandle ( "Progress_1", "Form_Excel" ) , { cTitle, hFont }, hFont, lSave )*/;
-               oQRH2TotvsBrowseData:Excel2( Form_Excel.BtnTxt1.Value, lActivate,GetControlHandle ( "Progress_1", "Form_Excel" ) , cTitle , lSave ),;
-               oQRH2TotvsBrowseData:Excel2( Form_Excel.BtnTxt1.Value, lActivate,GetControlHandle ( "Progress_1", "Form_Excel" ) , cTitle , lSave ) ),;
+               (ExcelOle(oQRH2TotvsBrowseData,Form_Excel.BtnTxt1.Value,lActivate,GetControlHandle("Progress_1","Form_Excel"),{cTitle,oQRH2TotvsBrowseData:hFont},oQRH2TotvsBrowseData:hFont,lSave,nil,{""}),Eval(oQRH2TotvsBrowseData:bGoTop)),;
+               (oQRH2TotvsBrowseData:Excel2(Form_Excel.BtnTxt1.Value,lActivate,GetControlHandle("Progress_1","Form_Excel"),cTitle,lSave),Eval(oQRH2TotvsBrowseData:bGoTop))),;
                Form_Excel.Release };
             WIDTH 76 HEIGHT 24
 
@@ -221,7 +221,6 @@ Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
             VALUE 0;
             WIDTH 336 HEIGHT 24
 
-
       END WINDOW
 
       ACTIVATE WINDOW Form_Excel
@@ -230,9 +229,19 @@ Function fExcel(oQRH2TotvsBrowseData,cFile,cTitle)
    endif
 
   oQRH2TotvsBrowseData:GoTop()
+  Eval(oQRH2TotvsBrowseData:bGoTop)
   oQRH2TotvsBrowseData:Refresh( .T. )
 
 Return Nil
+
+static function ExcelOle(oTSB,cXlsFile,lActivate,hProgress,cTitle,hFont,lSave,bExtern,aColSel,bPrintRow)
+    local oError
+    try
+        oTSB:ExcelOle(cXlsFile,lActivate,hProgress,cTitle,hFont,lSave,bExtern,aColSel,bPrintRow)
+    catch oError
+        oTSB:Excel2(cXlsFile,lActivate,hProgress,cTitle,lSave,bPrintRow)
+    end
+return
 
 Static Function fSaveFile(cFile)
 RETURN PutFile({{"Excel Book (*.xls)","*.xls"}},"Select the file",,.T.,cFile)
