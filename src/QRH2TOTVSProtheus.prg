@@ -260,6 +260,25 @@ function QRH2TotvsProtheusGetEmpresa(hINI)
 
 return(cTOTVSEmpresa) as character
 
+function QRH2TotvsProtheusGetFiliais(hINI)
+
+    local cFilial as character
+    
+    local aFiliais as array := array(0)
+    
+    local hFiliais as hash
+
+    if (hb_HHasKey(hINI,"TabelaFiliais"))
+        hFiliais:=hINI["TabelaFiliais"]
+        for each cFilial in hb_HKeys(hFiliais)
+            if (aScan(aFiliais,{|cFil|cFil==hFiliais[cFilial]})==0)
+                aAdd(aFiliais,hFiliais[cFilial])
+            endif
+        next each
+    endif
+
+return(aFiliais) as array
+
 function TruncateName(cName as character,nMaxChar as numeric,lRemoveSpace as logical,lFirst as logical,lRemoveVowel as logical,hTruncateName as hash)
 
     local aSplitName as array
@@ -624,16 +643,23 @@ return(xValue)
 
 static procedure QRHFuncionariosBrowse(hINI as hash,lExcel as logical,cExecTitle,bExec)
 
+    local aFiliais as array := QRH2TotvsProtheusGetFiliais(hINI)
     local cTOTVSEmpresa as character := QRH2TotvsProtheusGetEmpresa(hINI)
-
+    
     local cTitle as character
     local cSource as character
+    local cFiliais as character := ""
 
     local hOleConn as hash
 
     if (empty(cTOTVSEmpresa))
         MsgInfo(hb_OemToAnsi(hb_UTF8ToStr("Empresa Inválida")))
         return
+    endif
+    
+    aEval(aFiliais,{|cFil|cFiliais+="'"+cFil+"',"})
+    if (Right(cFiliais,1)==",")
+        cFiliais:=subStr(cFiliais,1,Len(cFiliais)-1)
     endif
 
     hOleConn:=QRHGetProviders(hINI)
@@ -647,9 +673,10 @@ static procedure QRHFuncionariosBrowse(hINI as hash,lExcel as logical,cExecTitle
                       FROM SRA010 SRA
                      WHERE (1=1)
                        AND SRA.D_E_L_E_T_=' '
-                  ORDER BY RA_CIC,RA_FILIAL
+                       AND SRA.RA_FILIAL IN (cFiliais)
+                  ORDER BY RA_FILIAL,RA_MAT
                 #pragma __endtext
-                cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0"})
+                cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0","cFiliais"=>cFiliais})
                 cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus..."))
                 WAIT WINDOW cTitle NOWAIT
                     QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_CIC,RA_FILIAL")

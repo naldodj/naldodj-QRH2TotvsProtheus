@@ -9,6 +9,9 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
     local Font_QRH2TotvsBrowseData
     local Form_QRH2TOTVSBrwoseData
 
+    local nGetFil as numeric
+    local nGetMat as numeric
+
     local nWinWidth as numeric  := getdesktopwidth()
     local nWinHeight as numeric := getdesktopheight()
     local nBrwWidth as numeric := nWinWidth-30
@@ -29,7 +32,7 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
     ON INIT  oQRH2TotvsBrowseData:SetFocus()
     
     DEFINE MAIN MENU
-        POPUP "Options"
+        POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
             if (valType(bExec)=="B")
                 DEFINE POPUP '&'+cExecTitle
                     ITEM cExecTitle ACTION Eval(bExec,Eval(bGetFil),Eval(bGetMat))
@@ -54,8 +57,11 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
     oQRH2TotvsBrowseData:aColumns[ 1 ]:lEdit := .F.
     oQRH2TotvsBrowseData:nClrLine := COLOR_GRID
 
-    bGetFil:=oQRH2TotvsBrowseData:GetColumn(1):bData
-    bGetMat:=oQRH2TotvsBrowseData:GetColumn(3):bData
+    nGetFil:=aScan(oQRH2TotvsBrowseData:aColumns,{|oCol|Upper(allTrim(oCol:cHeading))=="RA_FILIAL"})
+    bGetFil:=oQRH2TotvsBrowseData:GetColumn(nGetFil):bData
+    
+    nGetMat:=aScan(oQRH2TotvsBrowseData:aColumns,{|oCol|Upper(allTrim(oCol:cHeading))=="RA_MAT"})
+    bGetMat:=oQRH2TotvsBrowseData:GetColumn(nGetMat):bData
     
     if (oQRH2TotvsBrowseData:lDrawSpecHd)
     oQRH2TotvsBrowseData:nClrSpcHdBack := oQRH2TotvsBrowseData:nClrHeadBack
@@ -106,7 +112,7 @@ procedure QRH2TOTVSProtheusBrowseData2(oRecordSet,cTitle,lExcel)
     ON INIT  oQRH2TotvsBrowseData:SetFocus()
     
     DEFINE MAIN MENU
-        POPUP "Options"
+        POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
             if (lExcel)
                 DEFINE POPUP "&Excel"
                     ITEM "Export Browse to &Excel" ACTION fExcel(oQRH2TotvsBrowseData,cTitle+".xls",cTitle)

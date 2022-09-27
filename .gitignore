@@ -4,4 +4,5 @@
 /src/checkstatic.txt
 /src/Error.log
 /src/ErrorLog.htm
-/src/*.xls
+/src/*.xls*
+
