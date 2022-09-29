@@ -27,8 +27,6 @@ procedure main
 
     SET DEFAULT Icon TO GetStartupFolder() + "\rc\QRH2TOTVSProtheus.ico"
 
-    
-
     DEFINE WINDOW Form_MainQRH2Protheus ;
         AT 0, 0 ;
         WIDTH 600 HEIGHT 400 ;
