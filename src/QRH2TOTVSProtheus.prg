@@ -27,6 +27,8 @@ procedure main
 
     SET DEFAULT Icon TO GetStartupFolder() + "\rc\QRH2TOTVSProtheus.ico"
 
+    
+
     DEFINE WINDOW Form_MainQRH2Protheus ;
         AT 0, 0 ;
         WIDTH 600 HEIGHT 400 ;
@@ -72,6 +74,10 @@ procedure main
                 DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("Confi&gurações"))
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Show")) ACTION QRH2TOTVSProtheusViewIni(".\"+cIni)
                     MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&Reload")) ACTION (hINI:=hb_iniRead(cIni),st_hTables:={=>})
+                END POPUP
+                SEPARATOR
+                DEFINE POPUP hb_OemToAnsi(hb_UTF8ToStr("QRHTables"))
+                    MENUITEM hb_OemToAnsi(hb_UTF8ToStr("&QRHTables")) ACTION QRH2TOTVSProtheusQRHTables(hINI,.T.)
                 END POPUP
                 SEPARATOR
                 ITEM 'E&xit' ACTION Form_MainQRH2Protheus.Release()
@@ -149,57 +155,77 @@ static function About()
     cCopyRight+=" marinaldo.jesus@gmail.com"
 return(ShellAbout(cAbout,cCopyRight,LoadTrayIcon(GetInstance(),"MAINICON",50,50)))
 
-function QRHGetProviders(hINI)
+function QRHGetProviders(hINI,nProviders)
 
     local hOleConn as hash := {=>}
+    
+    hb_default(@nProviders,3)
 
-    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários Quarta RH...")) NOWAIT
+    if (nProviders==1).or.(nProviders==3)
 
-        //"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=databaseName;User ID=MyUserID;Password=MyPassword;"
-        hOleConn["SourceProvider"]:="Provider="+hINI["QRHConnection"]["Provider"]
-        hOleConn["SourceProvider"]+=";"
-        hOleConn["SourceProvider"]+="Data Source="+hINI["QRHConnection"]["DataSource"]
-        hOleConn["SourceProvider"]+=";"
-        if ((hb_HHasKey(hINI["QRHConnection"],"UserID")).and.(!Empty(hINI["QRHConnection"]["UserID"])))
-            hOleConn["SourceProvider"]+="User ID="+hINI["QRHConnection"]["UserID"]
+        WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Quarta RH Provider...")) NOWAIT
+
+            //"Provider=Microsoft.Jet.OLEDB.4.0;Data Source=databaseName;Jet OLEDB:System Database=system.mdw;User ID=MyUserID;Password=MyPassword;"
+            hOleConn["SourceProvider"]:="Provider="+hINI["QRHConnection"]["Provider"]
             hOleConn["SourceProvider"]+=";"
-            hOleConn["SourceProvider"]+="Password="+hINI["QRHConnection"]["Password"]
+            hOleConn["SourceProvider"]+="Data Source="+hINI["QRHConnection"]["DataSource"]
             hOleConn["SourceProvider"]+=";"
-        endif
+            hOleConn["SourceProviderHasSystemDatabase"]:=(file(GetEnv("APPDATA")+"\Microsoft\Access\System.mdw"))
+            if (hOleConn["SourceProviderHasSystemDatabase"])
+                hOleConn["SourceProvider"]+="Jet OLEDB:System Database="+GetEnv("APPDATA")+"\Microsoft\Access\System.mdw"
+                hOleConn["SourceProvider"]+=";"
+            endif
+            if ((hb_HHasKey(hINI["QRHConnection"],"UserID")).and.(!Empty(hINI["QRHConnection"]["UserID"])))
+                hOleConn["SourceProvider"]+="User ID="+hINI["QRHConnection"]["UserID"]
+                hOleConn["SourceProvider"]+=";"
+                if ((hb_HHasKey(hINI["QRHConnection"],"Password")).and.(!Empty(hINI["QRHConnection"]["Password"])))
+                    hOleConn["SourceProvider"]+="Password="+hINI["QRHConnection"]["Password"]
+                    hOleConn["SourceProvider"]+=";"
+                endif
+            endif
 
-        hOleConn["SourceConnection"]:=TOleAuto():new("ADODB.connection")
-        with object hOleConn["SourceConnection"]
-            :Mode:=3
-            :CursorLocation:=adUseClient
-            :ConnectionString:=hOleConn["SourceProvider"]
-            :Open()
-        end with
+            hOleConn["SourceConnection"]:=TOleAuto():new("ADODB.connection")
+            with object hOleConn["SourceConnection"]
+                :Mode:=3
+                :CursorLocation:=adUseClient
+                :ConnectionString:=hOleConn["SourceProvider"]
+                :Open()
+                if (hOleConn["SourceProviderHasSystemDatabase"])
+                    :Execute("GRANT SELECT ON TABLE MSysObjects TO PUBLIC;")
+                endif
+            end with
 
-    WAIT CLEAR
+        WAIT CLEAR
 
-    WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus...")) NOWAIT
+    endif
 
-        //"Provider=SQLOLEDB;Data Source=serverName;Initial Catalog=databaseName;User ID=MyUserID;Password=MyPassword;"
-        hOleConn["TargetProvider"]:="Provider="+hINI["TOTVSConnection"]["Provider"]
-        hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Data Source="+hINI["TOTVSConnection"]["DataSource"]
-        hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Initial Catalog="+hINI["TOTVSConnection"]["InitialCatalog"]
-        hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="User ID="+hINI["TOTVSConnection"]["UserID"]
-        hOleConn["TargetProvider"]+=";"
-        hOleConn["TargetProvider"]+="Password="+hINI["TOTVSConnection"]["Password"]
-        hOleConn["TargetProvider"]+=";"
+    if (nProviders==2).or.(nProviders==3)
 
-        hOleConn["TargetConnection"]:=TOleAuto():new("ADODB.connection")
-        with object hOleConn["TargetConnection"]
-            :Mode:=3
-            :CursorLocation:=adUseClient
-            :ConnectionString:=hOleConn["TargetProvider"]
-            :Open()
-        end with
+        WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("TOTVS Microsiga Protheus Provider...")) NOWAIT
 
-    WAIT CLEAR
+            //"Provider=SQLOLEDB;Data Source=serverName;Initial Catalog=databaseName;User ID=MyUserID;Password=MyPassword;"
+            hOleConn["TargetProvider"]:="Provider="+hINI["TOTVSConnection"]["Provider"]
+            hOleConn["TargetProvider"]+=";"
+            hOleConn["TargetProvider"]+="Data Source="+hINI["TOTVSConnection"]["DataSource"]
+            hOleConn["TargetProvider"]+=";"
+            hOleConn["TargetProvider"]+="Initial Catalog="+hINI["TOTVSConnection"]["InitialCatalog"]
+            hOleConn["TargetProvider"]+=";"
+            hOleConn["TargetProvider"]+="User ID="+hINI["TOTVSConnection"]["UserID"]
+            hOleConn["TargetProvider"]+=";"
+            hOleConn["TargetProvider"]+="Password="+hINI["TOTVSConnection"]["Password"]
+            hOleConn["TargetProvider"]+=";"
+
+            hOleConn["TargetConnection"]:=TOleAuto():new("ADODB.connection")
+            with object hOleConn["TargetConnection"]
+                :Mode:=3
+                :CursorLocation:=adUseClient
+                :ConnectionString:=hOleConn["TargetProvider"]
+                :Open()
+            end with
+
+        WAIT CLEAR
+
+    endif
 
 return(hOleConn) as hash
 

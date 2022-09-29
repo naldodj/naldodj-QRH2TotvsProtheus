@@ -1,4 +1,4 @@
-procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
+static procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
 
     local cCodePage as character
 
@@ -84,7 +84,7 @@ procedure QRH2TOTVSProtheusBrowseData(oRecordSet,cTitle,lExcel,cExecTitle,bExec)
 
 return
 
-procedure QRH2TOTVSProtheusBrowseData2(oRecordSet,cTitle,lExcel)
+static procedure QRH2TOTVSProtheusBrowseData2(oRecordSet,cTitle,lExcel)
 
     local cCodePage as character
 
@@ -112,7 +112,7 @@ procedure QRH2TOTVSProtheusBrowseData2(oRecordSet,cTitle,lExcel)
     ON INIT  oQRH2TotvsBrowseData:SetFocus()
     
     DEFINE MAIN MENU
-        POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
+        POPUP hb_UTF8ToStr("&Opções")
             if (lExcel)
                 DEFINE POPUP "&Excel"
                     ITEM "Export Browse to &Excel" ACTION fExcel(oQRH2TotvsBrowseData,cTitle+".xls",cTitle)
@@ -150,6 +150,168 @@ procedure QRH2TOTVSProtheusBrowseData2(oRecordSet,cTitle,lExcel)
     endif
 
     Hb_SetCodePage(cCodePage)
+
+return
+
+static procedure QRH2TOTVSProtheusQRHTables(hINI as hash,lExcel as logical)
+    
+    local cTitle as character
+    local cSource as character
+    local cFiliais as character := ""
+
+    local hOleConn as hash
+
+    try
+
+        hOleConn:=QRHGetProviders(hINI,1)
+
+        with object hOleConn["SourceConnection"]
+            if (:State==adStateOpen )
+                hOleConn["QRH"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["QRH"]
+                    #pragma __cstream|cSource:=%s
+                        SELECT MSysObjects.Name AS table_name
+                        FROM MSysObjects
+                        WHERE (((Left([Name],1))<>"~") 
+                                AND ((Left([Name],4))<>"MSys") 
+                                AND ((MSysObjects.Type) In (1,4,6))
+                                AND ((MSysObjects.Flags)=0))
+                        order by MSysObjects.Name
+                    #pragma __endtext
+                    cTitle:=hb_OemToAnsi(hb_UTF8ToStr("QRHTables..."))
+                    WAIT WINDOW cTitle NOWAIT
+                        QRHOpenRecordSet(hOleConn["QRH"],hOleConn["SourceConnection"],cSource,"table_name")
+                    WAIT CLEAR
+                    if (:eof())
+                        MsgInfo(hb_UTF8ToStr("Não Existem Dados para esta consulta"))
+                    else
+                        QRH2TOTVSProtheusBrowseQRHData(hINI,hOleConn["QRH"],cTitle,lExcel)
+                    endif
+                    :Close()
+                end with
+            endif
+            :Close()
+        end with
+
+    catch 
+    
+        MsgInfo(hb_UTF8ToStr("Opção Indisponível para o usuário Atual"))
+    
+    end
+
+return
+
+static procedure QRH2TOTVSProtheusBrowseQRHData(hINI,oRecordSet,cTitle,lExcel)
+
+    local cCodePage as character
+
+    local oQRH2TOTVSProtheusBrowseQRHData
+    local Font_QRH2TOTVSProtheusBrowseQRHData
+    local Form_QRH2TOTVSProtheusBrowseQRHData
+
+    local nQRHTable as numeric
+    local bQRHTable as codeblock
+
+    local nWinWidth as numeric  := getdesktopwidth()
+    local nWinHeight as numeric := getdesktopheight()
+    local nBrwWidth as numeric := nWinWidth-30
+    local nBrwHeight as numeric := nWinHeight-60
+
+    hb_default(@lExcel,.F.)
+
+    if (!_IsControlDefined ("Font_QRH2TOTVSProtheusBrowseQRHData","Main"))
+        DEFINE FONT Font_QRH2TOTVSProtheusBrowseQRHData FONTNAME "Arial" SIZE 10
+    endif
+
+    DEFINE WINDOW Form_QRH2TOTVSProtheusBrowseQRHData AT 0,0 ;
+    WIDTH nWinWidth HEIGHT nWinHeight ;
+    TITLE cTitle;
+    ICON GetStartupFolder()+"\rc\QRH2TOTVSProtheus.ico";
+    CHILD;
+    NOMAXIMIZE NOSIZE
+    ON INIT  oQRH2TOTVSProtheusBrowseQRHData:SetFocus()
+    
+    DEFINE MAIN MENU
+        POPUP hb_OemToAnsi(hb_UTF8ToStr("&Opções"))
+            DEFINE POPUP '&QRHTable'
+                ITEM '&QRHTable' ACTION QRH2TOTVSProtheusQRHTableBrowseData(hINI,lExcel,Eval(bQRHTable))
+            END POPUP
+            if (lExcel)
+                DEFINE POPUP "&Excel"
+                    ITEM "Export Browse to &Excel" ACTION fExcel(oQRH2TOTVSProtheusBrowseQRHData,cTitle+".xls",cTitle)
+                END POPUP
+            endif
+            SEPARATOR
+            ITEM '&About' ACTION MsgInfo("Connecti :: Quarta RH To TOTVS Microsiga Protheus ")
+            ITEM 'Exit' ACTION ThisWindow.Release
+        END POPUP
+    END MENU
+
+    @  10,10 TBROWSE oQRH2TOTVSProtheusBrowseQRHData RECORDSET oRecordSet  EDITABLE AUTOCOLS SELECTOR .T. ;
+    WIDTH nBrwWidth HEIGHT nBrwHeight  ;
+    FONT Font_QRH2TOTVSProtheusBrowseQRHData ;
+    COLORS CLR_BLACK, CLR_WHITE, CLR_BLACK, { CLR_WHITE, COLOR_GRID }, CLR_BLACK, -CLR_HRED  ;
+
+    oQRH2TOTVSProtheusBrowseQRHData:aColumns[ 1 ]:lEdit := .F.
+    oQRH2TOTVSProtheusBrowseQRHData:nClrLine := COLOR_GRID
+    
+    nQRHTable:=aScan(oQRH2TOTVSProtheusBrowseQRHData:aColumns,{|oCol|Upper(allTrim(oCol:cHeading))=="TABLE_NAME"})
+    bQRHTable:=oQRH2TOTVSProtheusBrowseQRHData:GetColumn(nQRHTable):bData
+    
+    if (oQRH2TOTVSProtheusBrowseQRHData:lDrawSpecHd)
+    oQRH2TOTVSProtheusBrowseQRHData:nClrSpcHdBack := oQRH2TOTVSProtheusBrowseQRHData:nClrHeadBack
+    endif
+
+    ON KEY ESCAPE ACTION ThisWindow.Release
+
+    END WINDOW
+
+    cCodePage:=Hb_SetCodePage('PTISO')
+
+    ACTIVATE WINDOW Form_QRH2TOTVSProtheusBrowseQRHData
+
+    RELEASE FONT Font_QRH2TOTVSProtheusBrowseQRHData
+    if (IsWindowDefined( Form_QRH2TOTVSProtheusBrowseQRHData ))
+        RELEASE WINDOW Form_QRH2TOTVSProtheusBrowseQRHData
+    endif
+
+    Hb_SetCodePage(cCodePage)
+
+return
+
+static procedure QRH2TOTVSProtheusQRHTableBrowseData(hINI as hash,lExcel as logical,cTable)
+    
+    local cTitle as character
+    local cSource as character
+    local cFiliais as character := ""
+
+    local hOleConn as hash
+
+    hOleConn:=QRHGetProviders(hINI,1)
+
+    with object hOleConn["SourceConnection"]
+        if (:State==adStateOpen )
+            hOleConn[cTable]:=TOleAuto():New("ADODB.RecordSet")
+            with object hOleConn[cTable]
+                #pragma __cstream|cSource:=%s
+                    SELECT *
+                    FROM cTable
+                #pragma __endtext
+                cSource:=hb_StrReplace(cSource,{"cTable"=>cTable})
+                cTitle:=hb_OemToAnsi(hb_UTF8ToStr(cTable))
+                WAIT WINDOW cTitle NOWAIT
+                    QRHOpenRecordSet(hOleConn[cTable],hOleConn["SourceConnection"],cSource)
+                WAIT CLEAR
+                if (:eof())
+                    MsgInfo(hb_UTF8ToStr("Não Existem Dados para esta consulta"))
+                else
+                    QRH2TOTVSProtheusBrowseData2(hOleConn[cTable],cTitle,lExcel)
+                endif
+                :Close()
+            end with
+        endif
+        :Close()
+    end with
 
 return
 
