@@ -60,7 +60,19 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                     #pragma __cstream|cSource:=%s
                         SELECT IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS [RF_DFERVAT]
                               ,IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS [RF_DFERAAT]
-                              ,*
+                              ,[HistFerias].[FuncionarioID]
+                              ,[HistFerias].[Empresa]
+                              ,[HistFerias].[Matricula]
+                              ,[HistFerias].[RefInicial]
+                              ,[HistFerias].[RefFinal]
+                              ,[HistFerias].[ConcedInicial]
+                              ,[HistFerias].[ConcedFinal]
+                              ,[HistFerias].[Faltas]
+                              ,[HistFerias].[DiasFerias]
+                              ,[HistFerias].[FeriasColetivas]
+                              ,[HistFerias].[AbonoPecuniario]
+                              ,[HistFerias].[13Salario]
+                              ,[HistFerias].[Notas]
                           FROM [HistFerias]
                         WHERE (
                                     SELECT COUNT(*)
