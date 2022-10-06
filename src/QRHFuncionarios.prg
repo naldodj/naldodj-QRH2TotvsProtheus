@@ -13,6 +13,7 @@ procedure QRHFuncionarios(hINI as hash)
     local cSource as string
     local cTargetField as character
 
+    local cEnderecoID as character
     local cCommonFindKey as character
 
     local hFields as hash := hINI["QRHFuncionarios"]
@@ -59,6 +60,13 @@ procedure QRHFuncionarios(hINI as hash)
                         SELECT * FROM FuncionarioEndereco ORDER BY Empresa,Matricula,FuncionarioID
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["FuncionarioEndereco"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID")
+                end with
+                hOleConn["Enderecos"]:=TOleAuto():New("ADODB.RecordSet")
+                with object hOleConn["Enderecos"]
+                    #pragma __cstream|cSource:=%s
+                        SELECT * FROM Enderecos ORDER BY EnderecoID
+                    #pragma __endtext
+                    QRHOpenRecordSet(hOleConn["Enderecos"],hOleConn["SourceConnection"],cSource,"EnderecoID")
                 end with
                 hOleConn["FuncionarioDocumentos"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["FuncionarioDocumentos"]
@@ -142,6 +150,13 @@ procedure QRHFuncionarios(hINI as hash)
                             with object hOleConn["FuncionarioEndereco"]
                                 :MoveFirst()
                                 :Find(cCommonFindKey,0,1)
+                                if (!:eof())
+                                    cEnderecoID:=HB_NToS(:Fields("EnderecoID"):Value)
+                                    with object hOleConn["Enderecos"]
+                                        :MoveFirst()
+                                        :Find("EnderecoID="+cEnderecoID,0,1)
+                                    end with
+                                endif
                             end with
                             with object hOleConn["FuncionarioDocumentos"]
                                 :MoveFirst()

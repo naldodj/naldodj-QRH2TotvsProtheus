@@ -703,7 +703,7 @@ static procedure QRHFuncionariosBrowse(hINI as hash,lExcel as logical,cExecTitle
                 cSource:=hb_StrReplace(cSource,{"SRA010"=>"SRA"+cTOTVSEmpresa+"0","cFiliais"=>cFiliais})
                 cTitle:=hb_OemToAnsi(hb_UTF8ToStr("Funcionários TOTVS Microsiga Protheus..."))
                 WAIT WINDOW cTitle NOWAIT
-                    QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_CIC,RA_FILIAL")
+                    QRHOpenRecordSet(hOleConn["SRA"],hOleConn["TargetConnection"],cSource,"RA_FILIAL,RA_MAT")
                 WAIT CLEAR
                 QRH2TOTVSProtheusBrowseData(hOleConn["SRA"],cTitle,lExcel,cExecTitle,bExec)
                 :Close()
