@@ -58,10 +58,10 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                 hOleConn["HistFerias"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["HistFerias"]
                     #pragma __cstream|cSource:=%s
-                        SELECT *
-                              ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS RF_DFERVAT
-                              ,IIF(DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS RF_DFERAAT
-                          FROM HistFerias
+                        SELECT IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS [RF_DFERVAT]
+                              ,IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS [RF_DFERAAT]
+                              ,*
+                          FROM [HistFerias]
                         WHERE (
                                     SELECT COUNT(*)
                                       FROM [HistFerias] [HFAB]
@@ -73,8 +73,46 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                                        AND [HFAB].[AbonoPecuniario]=0
                                        AND [HistFerias].[AbonoPecuniario]<>0
                               )=0
-                         ORDER
-                            BY Empresa,Matricula,FuncionarioID,RefInicial
+                         UNION 
+                         SELECT [FuncionarioFerias].[Ferias1Dias] AS [RF_DFERVAT]
+                               ,0 AS [RF_DFERAAT]
+                               ,[FuncionarioFerias].[FuncionarioID]
+                               ,[Funcionarios].[Empresa]
+                               ,[Funcionarios].[Matricula]
+                               ,[FuncionarioFerias].[Ferias1AqIni] AS [RefInicial]
+                               ,[FuncionarioFerias].[Ferias1AqFim] AS [RefFinal]
+                               ,[FuncionarioFerias].[Ferias1Ini]   AS [ConcedInicial]
+                               ,DateAdd('d',[FuncionarioFerias].[Ferias1Dias],[FuncionarioFerias].[Ferias1Ini]) AS [ConcedFinal]
+                               ,0 AS [Faltas]
+                               ,[FuncionarioFerias].[Ferias1Dias] AS [DiasFerias]
+                               ,[FuncionarioFerias].[UltPerFerColetivas] AS [FeriasColetivas]
+                               ,[FuncionarioFerias].[TeraAbonoNasFerias] AS [AbonoPecuniario]
+                               ,[FuncionarioFerias].[Tera13NasFerias] AS [13Sarario]
+                               ,0 AS [Notas]
+                        FROM [FuncionarioFerias]
+                        INNER JOIN [Funcionarios]
+                            ON (Funcionarios.FuncionarioID=[FuncionarioFerias].[FuncionarioID])
+                         UNION 
+                         SELECT [FuncionarioFerias].[Ferias2Dias] AS [RF_DFERVAT]
+                               ,0 AS [RF_DFERAAT]
+                               ,[FuncionarioFerias].[FuncionarioID]
+                               ,[Funcionarios].[Empresa]
+                               ,[Funcionarios].[Matricula]
+                               ,[FuncionarioFerias].[Ferias2AqIni] AS [RefInicial]
+                               ,[FuncionarioFerias].[Ferias2AqFim] AS [RefFinal]
+                               ,[FuncionarioFerias].[Ferias2Ini]   AS [ConcedInicial]
+                               ,DateAdd('d',[FuncionarioFerias].[Ferias2Dias],[FuncionarioFerias].[Ferias2Ini]) AS [ConcedFinal]
+                               ,0 AS [Faltas]
+                               ,[FuncionarioFerias].[Ferias2Dias] AS [DiasFerias]
+                               ,[FuncionarioFerias].[UltPerFerColetivas] AS [FeriasColetivas]
+                               ,[FuncionarioFerias].[TeraAbonoNasFerias] AS [AbonoPecuniario]
+                               ,[FuncionarioFerias].[Tera13NasFerias] AS [13Sarario]
+                               ,0 AS [Notas]
+                        FROM [FuncionarioFerias]
+                        INNER JOIN [Funcionarios]
+                            ON (Funcionarios.FuncionarioID=[FuncionarioFerias].[FuncionarioID])
+                        ORDER
+                           BY Empresa,Matricula,FuncionarioID,RefInicial
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["HistFerias"],hOleConn["SourceConnection"],cSource,"Empresa,Matricula,FuncionarioID,RefInicial")
                 end with
