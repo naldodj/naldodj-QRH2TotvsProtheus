@@ -85,7 +85,9 @@ procedure main
             END POPUP
         END MENU
         DEFINE STATUSBAR FONT "MS Sans serif" SIZE 8
-            STATUSITEM "Connecti :: Quarta RH To TOTVS Microsiga Protheus "
+            STATUSITEM allTrim((hb_CurDrive()+hb_osDriveSeparator()+hb_ps()+CurDir()))+" :: QRH2TOTVSMicrosigaProtheus"
+            STATUSITEM "Connecti"
+            STATUSITEM " "
         END STATUSBAR
     ON KEY ESCAPE ACTION ThisWindow.Release
     END WINDOW
