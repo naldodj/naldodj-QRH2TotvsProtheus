@@ -60,6 +60,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                     #pragma __cstream|cSource:=%s
                         SELECT IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,30,0) AS [RF_DFERVAT]
                               ,IIF(DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))>=12,0,((((DateDiff("m",DateAdd("d",-1,[HistFerias].[RefInicial]),DateSerial(Year(Date()),Month(Date())+1,0))/30)*2.5))*30)) AS [RF_DFERAAT]
+                              ,1 AS [RF_STATUS]
                               ,[HistFerias].[FuncionarioID]
                               ,[HistFerias].[Empresa]
                               ,[HistFerias].[Matricula]
@@ -88,6 +89,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                          UNION 
                          SELECT [FuncionarioFerias].[Ferias1Dias] AS [RF_DFERVAT]
                                ,0 AS [RF_DFERAAT]
+                               ,0 AS [RF_STATUS]
                                ,[FuncionarioFerias].[FuncionarioID]
                                ,[Funcionarios].[Empresa]
                                ,[Funcionarios].[Matricula]
@@ -107,6 +109,7 @@ procedure QRHFuncionariosHistFeriasSRF(hINI as hash)
                          UNION 
                          SELECT [FuncionarioFerias].[Ferias2Dias] AS [RF_DFERVAT]
                                ,0 AS [RF_DFERAAT]
+                               ,0 AS [RF_STATUS]
                                ,[FuncionarioFerias].[FuncionarioID]
                                ,[Funcionarios].[Empresa]
                                ,[Funcionarios].[Matricula]
