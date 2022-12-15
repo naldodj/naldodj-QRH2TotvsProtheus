@@ -76,9 +76,11 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                 hOleConn["HistFolha"]:=TOleAuto():New("ADODB.RecordSet")
                 with object hOleConn["HistFolha"]
                     #pragma __cstream|cSource:=%s
-                        SELECT *
+                        SELECT HistFolha.*
+                              ,Eventos.Tipo
                           FROM HistFolha
-                      ORDER BY FuncionarioID,TipoFolha,DataCalculo,Codigo
+                     LEFT JOIN Eventos ON (HistFolha.Codigo=Eventos.Codigo)
+                      ORDER BY HistFolha.FuncionarioID,HistFolha.TipoFolha,HistFolha.DataCalculo,HistFolha.Codigo
                     #pragma __endtext
                     QRHOpenRecordSet(hOleConn["HistFolha"],hOleConn["SourceConnection"],cSource,"FuncionarioID,TipoFolha,DataCalculo,Codigo")
                 end with
