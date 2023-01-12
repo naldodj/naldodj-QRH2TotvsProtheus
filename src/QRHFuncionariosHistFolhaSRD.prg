@@ -1,6 +1,6 @@
 #include "minigui.ch"
 
-#define SRDUPDATEDATA 500
+#define SRDUPDATEDATA 1024
 
 procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
 
@@ -49,6 +49,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
 
     local nRow as numeric
     local nComplete as numeric
+    local nMaxBufferItens as numeric
 
     local oError as object
     local oSRDOleData as object
@@ -113,6 +114,12 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
         end with
 
     WAIT CLEAR
+
+    if ((hb_HHasKey(hINI,"TOTVSConnection")).and.(hb_HHasKey(hINI["TOTVSConnection"],"MaxBufferItens")))
+        nMaxBufferItens:=val(hINI["TOTVSConnection"]["MaxBufferItens"])
+    else
+        nMaxBufferItens:=SRDUPDATEDATA
+    endif
 
     with object hOleConn["SourceConnection"]
         if (:State==adStateOpen )
@@ -283,7 +290,7 @@ procedure QRHFuncionariosHistFolhaSRD(hINI as hash)
                                                         endif
                                                     next each
                                                     nSRDConn++
-                                                    if (nSRDConn>SRDUPDATEDATA)
+                                                    if (nSRDConn>nMaxBufferItens)
                                                         WAIT WINDOW hb_OemToAnsi(hb_UTF8ToStr("Update HistFolha TOTVS Protheus...")) NOWAIT
                                                             for each oSRDOleData in hSRDData
                                                                 with object oSRDOleData
